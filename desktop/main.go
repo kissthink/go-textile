@@ -91,6 +91,10 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 		return err
 	}
 
+	gateway.Host = &gateway.Gateway{
+		Node: node,
+	}
+
 	// bring the node online and startup the gateway
 	if err := node.Start(); err != nil {
 		return err
@@ -159,13 +163,13 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 				})
 
 				// tmp auto-accept thread invites
-				//if note.Type == repo.InviteReceivedNotification {
-				//	go func(tid string) {
-				//		if _, err := node.AcceptThreadInvite(tid); err != nil {
-				//			astilog.Error(err)
-				//		}
-				//	}(note.BlockId)
-				//}
+				if note.Type == repo.InviteReceivedNotification.Description() {
+					go func(tid string) {
+						if _, err := node.AcceptThreadInvite(tid); err != nil {
+							astilog.Error(err)
+						}
+					}(note.BlockId)
+				}
 
 				// show notification
 				go func(n *astilectron.Notification) {
