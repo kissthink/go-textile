@@ -5,10 +5,17 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/mr-tron/base58/base58"
+	"github.com/pkg/browser"
+	"github.com/textileio/textile-go/crypto"
 
 	"gx/ipfs/QmUJYo4etAQqFfSS2rarFAE97eNGB8ej64YkRT2SmsYD4r/go-ipfs/repo/fsrepo"
 
@@ -19,6 +26,7 @@ import (
 	"github.com/skip2/go-qrcode"
 	"github.com/textileio/textile-go/core"
 	"github.com/textileio/textile-go/gateway"
+	"github.com/textileio/textile-go/ipfs"
 	"github.com/textileio/textile-go/keypair"
 	"github.com/textileio/textile-go/repo"
 )
@@ -28,8 +36,13 @@ var (
 	builtAt     string
 	debug       = flag.Bool("d", false, "enables the debug mode")
 	window      *astilectron.Window
+	menu        *astilectron.Menu
 	gatewayAddr string
+	repoPath    string
 	expanded    bool
+	onboarded   = false
+	connected   = false
+	config      *Config
 )
 
 const (
@@ -50,7 +63,7 @@ func main() {
 	bootstrapApp()
 }
 
-func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.Menu, _ *astilectron.Tray, _ *astilectron.Menu) error {
+func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.Menu, t *astilectron.Tray, _ *astilectron.Menu) error {
 	window = w[0]
 	window.Show()
 
@@ -70,7 +83,16 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 	if err := os.MkdirAll(appDir, 0755); err != nil {
 		return err
 	}
-	repoPath := filepath.Join(appDir, "repo")
+	repoPath = filepath.Join(appDir, "repo")
+
+	// ignore errors and assume defaults
+	if config, err = ReadConfig(repoPath); err != nil {
+		config = &Config{}
+	}
+
+	sendData("status", map[string]interface{}{
+					"status": "loading",
+				})
 
 	// run init if needed
 	if !fsrepo.IsInitialized(repoPath) {
@@ -101,35 +123,51 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 	}
 	<-node.OnlineCh()
 
-	// subscribe to wallet updates
-	go func() {
-		for {
-			select {
-			case update, ok := <-node.UpdateCh():
-				if !ok {
-					return
-				}
-				payload := map[string]interface{}{
-					"update": update,
-				}
-				switch update.Type {
-				case core.ThreadAdded:
-					if expanded {
-						sendData("wallet.update", payload)
-					} else {
-						sendPreReady()
-						window.Hide()
-						expandWindow()
-						sendData("wallet.update", payload)
-						window.Show()
-						window.Focus()
-					}
-				default:
-					sendData("wallet.update", payload)
-				}
-			}
-		}
-	}()
+	astilog.Info(fmt.Sprintf("Peer ID: %s", node.Ipfs().Identity.Pretty()))
+
+	menu = t.NewMenu([]*astilectron.MenuItemOptions{
+		{
+			Label:   astilectron.PtrStr("Backup"),
+			Enabled: astilectron.PtrBool(false),
+		},
+		{
+			Label: astilectron.PtrStr("Choose location..."),
+			OnClick: func(e astilectron.Event) (deleteListener bool) {
+				astilog.Info("Updating Backup Location...")
+				sendMessage("set-backup")
+				window.Focus()
+				return
+			},
+		},
+		{
+			Label: astilectron.PtrStr("Open..."),
+			OnClick: func(e astilectron.Event) (deleteListener bool) {
+				astilog.Info("Opening backup folder...")
+				browser.OpenFile(config.BackupFolder)
+				return
+			},
+		},
+		{
+			Type: astilectron.MenuItemTypeSeparator,
+		},
+		{
+			Label: astilectron.PtrStr("Check Messages"),
+			OnClick: func(e astilectron.Event) (deleteListener bool) {
+				astilog.Info("Checking Messages...")
+				node.CheckCafeMessages()
+				return
+			},
+		},
+		{
+			Label: astilectron.PtrStr("Quit"),
+			OnClick: func(e astilectron.Event) (deleteListener bool) {
+				astilog.Info("Quitting...")
+				a.Quit()
+				return
+			},
+		},
+	})
+	menu.Create()
 
 	// subscribe to thread updates
 	listener := node.ThreadUpdateListener()
@@ -140,9 +178,26 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 				if !ok {
 					return
 				}
+				mapped, err := toMap(update)
+				if err != nil {
+					continue
+				}
+				window.Log("before")
 				sendData("thread.update", map[string]interface{}{
-					"update": update,
+					"update": mapped,
 				})
+				window.Log("after")
+				if config.BackupFolder != "" {
+					if data, ok := update.(core.ThreadUpdate); ok {
+						if data.Block.Type == "FILES" {
+							tmpBase := filepath.Join(config.BackupFolder, data.Block.Target)
+							err := backupFile(data.Block.Id, node, tmpBase)
+							if err != nil {
+								continue
+							}
+						}
+					}
+				}
 			}
 		}
 	}()
@@ -158,7 +213,7 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 				username := node.ContactUsername(note.ActorId)
 				var uinote = a.NewNotification(&astilectron.NotificationOptions{
 					Title: note.Subject,
-					Body:  fmt.Sprintf("%s %s.", username, note.Body),
+					Body:  fmt.Sprintf("%s: %s.", username, note.Body),
 					Icon:  "/resources/icon.png",
 				})
 
@@ -191,47 +246,31 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 
 	// save off the server address
 	gatewayAddr = fmt.Sprintf("http://%s", gateway.Host.Addr())
+	astilog.Info(fmt.Sprintf("Gateway Addr: %s", gatewayAddr))
 
 	// sleep for a bit on the landing screen, it feels better
 	time.Sleep(SleepOnLoad)
 
-	// send cookie info to front-end
-	sendData("login", map[string]interface{}{
-		"name":    "SessionId",
-		"value":   "not used",
-		"gateway": gatewayAddr,
-	})
+	sendData("status", map[string]interface{}{
+					"status": "ready",
+				})
 
 	// check if we're configured yet
 	threads := node.Threads()
 	if len(threads) > 0 {
-		// load threads for UI
-		var threadsJSON []map[string]interface{}
-		for _, thrd := range threads {
-			threadsJSON = append(threadsJSON, map[string]interface{}{
-				"id":   thrd.Id,
-				"name": thrd.Name,
-			})
+		astilog.Info("Have thread(s):")
+		for _, thread := range threads {
+			astilog.Info(thread.Id)
 		}
-
-		// reveal
-		sendPreReady()
-		window.Hide()
-		expandWindow()
-		sendData("ready", map[string]interface{}{
-			"threads": threadsJSON,
-		})
-		window.Show()
-		window.Focus()
-
 	} else {
+		astilog.Info("No thread(s) yet")
 		// get qr code for setup
 		qr, pk, err := getQRCode()
 		if err != nil {
 			astilog.Error(err)
 			return err
 		}
-		sendData("setup", map[string]interface{}{
+		sendData("pair", map[string]interface{}{
 			"qr": qr,
 			"pk": pk,
 		})
@@ -249,25 +288,117 @@ func sendData(name string, data map[string]interface{}) {
 	window.SendMessage(data)
 }
 
+type ThreadPayload struct {
+	ThreadId string `json:"thread_id"`
+	Body string `json:"body"`
+}
+
+func toMap(data interface{}) (map[string]interface{}, error) {
+	var target map[string]interface{}
+	inrec, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(inrec, &target)
+	if err != nil {
+		return nil, err
+	}
+	return target, nil
+}
+
 func handleMessage(_ *astilectron.Window, m bootstrap.MessageIn) (interface{}, error) {
+	astilog.Info(m.Name)
 	switch m.Name {
-	case "refresh":
-		if err := node.CheckCafeMessages(); err != nil {
+	case "threads":
+		// TODO: Use API (textile threads ls)
+		list := make([]*core.ThreadInfo, 0)
+		for _, thrd := range node.Threads() {
+			info, err := thrd.Info()
+			if err != nil {
+				return nil, err
+			}
+			list = append(list, info)
+		}
+		mapped, err := toMap(map[string]interface{}{
+			"threads": list,
+		})
+		if err != nil {
 			return nil, err
 		}
-		return map[string]interface{}{}, nil
-	case "thread.load":
+		return mapped, nil
+	case "backup":
+		var folder string
+		if err := json.Unmarshal(m.Payload, &folder); err != nil {
+			return nil, err
+		}
+		config.BackupFolder = folder
+		WriteConfig(repoPath, config)
+		return map[string]interface{}{
+			"success": true,
+		}, nil
+	case "status":
+		status := "loading"
+		if node != nil {
+			status = "ready"
+		}
+		return map[string]interface{}{
+			"status": status,
+		}, nil
+	case "username":
+		// TODO: Use API (textile profile get)
+		var username string
+		name, err := node.Username()
+		if err == nil && name != nil && *name != "" {
+			username = *name
+		} else {
+			id := node.Ipfs().Identity.Pretty()
+			username = ipfs.ShortenID(id)
+		}
+		return map[string]interface{}{
+			"username": username,
+		}, nil
+	case "messages":
+		// TODO: Use API (textile messages ls -t -o -l)
 		var threadId string
 		if err := json.Unmarshal(m.Payload, &threadId); err != nil {
 			return nil, err
 		}
-		html, err := getThreadPhotos(threadId)
+		list, err := node.ThreadMessages("", 20, threadId)
 		if err != nil {
 			return nil, err
 		}
-		return map[string]interface{}{
-			"html": html,
-		}, nil
+		mapped, err := toMap(map[string]interface{}{
+			"messages": list,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return mapped, nil
+	case "message":
+		var payload ThreadPayload
+		if err := json.Unmarshal(m.Payload, &payload); err != nil {
+			return nil, err
+		}
+		if payload.ThreadId == "default" {
+			payload.ThreadId = node.Config().Threads.Defaults.ID
+		}
+		thrd := node.Thread(payload.ThreadId)
+		if thrd == nil {
+			return nil, core.ErrThreadNotFound
+		}
+		hash, err := thrd.AddMessage(payload.Body)
+		if err != nil {
+			return nil, err
+		}
+		info, err := node.BlockInfo(hash.B58String())
+		if err != nil {
+			return nil, err
+		}
+		mapped, err := toMap(info)
+		if err != nil {
+			return nil, err
+		}
+		return mapped, nil
 	default:
 		return map[string]interface{}{}, nil
 	}
@@ -290,33 +421,58 @@ func getQRCode() (string, string, error) {
 	return base64.StdEncoding.EncodeToString(png), pid.Pretty(), nil
 }
 
-func getThreadPhotos(id string) (string, error) {
-	thrd := node.Thread(id)
-	if thrd == nil {
-		return "", core.ErrThreadNotFound
-	}
-	var html string
-	query := fmt.Sprintf("threadId='%s' and type=%d", thrd.Id, repo.FilesBlock)
-	for range node.Blocks("", -1, query) {
-		//photo := fmt.Sprintf("%s/ipfs/%s/photo?block=%s", gatewayAddr, block.DataId, block.Id)
-		//small := fmt.Sprintf("%s/ipfs/%s/small?block=%s", gatewayAddr, block.DataId, block.Id)
-		//meta := fmt.Sprintf("%s/ipfs/%s/meta?block=%s", gatewayAddr, block.DataId, block.Id)
-		//img := fmt.Sprintf("<img src=\"%s\" />", small)
-		//html += fmt.Sprintf(
-		//	"<div id=\"%s\" class=\"grid-item\" ondragstart=\"imageDragStart(event);\" draggable=\"true\" data-url=\"%s\" data-meta=\"%s\">%s</div>",
-		//	block.Id, photo, meta, img)
-	}
-	return html, nil
-}
-
 func sendPreReady() {
 	sendMessage("preready")
 	time.Sleep(SleepOnPreReady)
 }
 
-func expandWindow() {
-	expanded = true
-	go window.Resize(InitialWidth, InitialHeight)
-	go window.Center()
-	time.Sleep(SleepOnExpand)
+func Exit(e astilectron.Event) (deleteListener bool) {
+	astilog.Info("Exit clicked")
+	window.Close()
+	return
+}
+
+func backupFile(id string, node *core.Textile, tmpBase string) error {
+	info, err := node.ThreadFile(id)
+	if err != nil {
+		astilog.Error(err)
+		return err
+	}
+	if err = os.MkdirAll(tmpBase, 0744); err != nil {
+		astilog.Error(err)
+		return err
+	}
+	for _, file := range info.Files {
+		err = os.Mkdir(filepath.Join(tmpBase, strconv.Itoa(file.Index)), 0744)
+		if err != nil {
+			astilog.Error(err)
+			return err
+		}
+		for name, link := range file.Links {
+			data, err := ipfs.DataAtPath(node.Ipfs(), link.Hash)
+			if err != nil {
+				astilog.Error(err)
+				continue
+			}
+			var plaintext []byte
+			if link.Key != "" {
+				key, err := base58.Decode(link.Key)
+				if err != nil {
+					astilog.Error(err)
+					continue
+				}
+				plaintext, err = crypto.DecryptAES(data, key)
+			} else {
+				plaintext = data
+			}
+			// TODO: Extract extension from Media value
+			ext := strings.ToLower(filepath.Ext(link.Name))
+			tempPath := filepath.Join(tmpBase, strconv.Itoa(file.Index), name+ext)
+			err = ioutil.WriteFile(tempPath, plaintext, 0644)
+			if err != nil {
+				astilog.Error(err)
+			}
+		}
+	}
+	return nil
 }
