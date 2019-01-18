@@ -18,6 +18,9 @@
     "dvcsimport": "github.com/textileio/textile-go",
     "goversion": "1.11"
   },
+  "standard": {
+    "parser": "babel-eslint"
+  },
   "gxDependencies": [
     {
       "hash": "QmUJYo4etAQqFfSS2rarFAE97eNGB8ej64YkRT2SmsYD4r",
