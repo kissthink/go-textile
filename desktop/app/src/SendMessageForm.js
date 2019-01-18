@@ -1,41 +1,29 @@
 import React, { Component } from 'react'
 import { Button, TextInput } from 'react-desktop/macOs'
+import { observer } from 'mobx-react'
 
-class SendMessageForm extends Component {
-    state = {
-        text: ''
-    }
+export default @observer class SendMessageForm extends Component {
+  onSubmit (event) {
+    const { store } = this.props
+    event.preventDefault()
+    store.addMessage(event.target.value)
+  }
 
-    onSubmit = e => {
-        e.preventDefault()
-        this.props.onSend(this.state.text)
-        this.setState({ text: '' })
-    }
-
-    onChange = e => {
-        this.setState({ text: e.target.value })
-        if (this.props.onChange) {
-            this.props.onChange()
-        }
-    }
-
-    render() {
-        return (
-            <div className="send-message-form-container">
-                <form onSubmit={this.onSubmit} className="send-message-form">
-                    <TextInput
-                        type="text"
-                        onChange={this.onChange}
-                        value={this.state.text}
-                        className="message-input"
-                    />
-                    <Button color="blue" type="submit">
-                        Send
+  render () {
+    // const { store } = this.props
+    return (
+      <div className='send-message-form-container'>
+        <form onSubmit={this.onSubmit} className='send-message-form'>
+          <TextInput
+            type='text'
+            // value={state.chat.message}
+            className='message-input'
+          />
+          <Button color='blue' type='submit'>
+            Send
           </Button>
-                </form>
-            </div>
-        )
-    }
+        </form>
+      </div>
+    )
+  }
 }
-
-export default SendMessageForm

@@ -9,7 +9,6 @@ import (
 
 // bootstrapApp runs bootstrap. Moved to own file so we don't have to see Asset and RestoreAsset highlighed as errors :)
 func bootstrapApp() {
-	astilog.Debugf("Running app built at %s", builtAt)
 	if err := bootstrap.Run(bootstrap.Options{
 		Asset:    Asset,
 		AssetDir: AssetDir,

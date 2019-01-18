@@ -1,8 +1,11 @@
-build:
-	cd app && yarn build && \
-	cp -rf build/ ../resources/app && \
-	cd .. && \
+react: app/src/*
+	cd app && yarn build
+
+copy: react
+	cp -rf app/build/ resources/app
+
+bundle: copy
 	astilectron-bundler
 
-run: build
+run: bundle
 	go run *.go

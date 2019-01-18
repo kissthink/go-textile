@@ -1,57 +1,27 @@
 /* global asticode astilectron */
 import React, { Component } from 'react'
-import chat, Chat from './Chat'
-import main, Main from './Main'
+import { observer } from 'mobx-react'
+import Root from './Root'
 
-export const app = {
-  initialState: () => Object.assign(
-    main.initialState(),
-    chat.initialState()
-  ),
-  actions: update => Object.assign({},
-    main.actions(update),
-    chat.actions(update),
-  )
-}
-
-export class App extends Component {
-  constructor (props) {
-    super(props)
-    this.state = props.states()
-  }
-
-  componentDidMount() {
-    this.props.states.map(state => {
-      return this.setState(state)
-    })
-    const { actions } = this.props
+export @observer class App extends Component {
+  componentDidMount () {
+    const store = this.props.store
     astilectron.onMessage(message => {
       console.log(message)
       if (message.name === 'status') {
-        asticode.notifier.info("Status: " + message.status)
-        actions.setStatus(message.status)
+        asticode.notifier.info('Status: ' + message.status)
+        store.status = message.status
         // TODO: This doesn't really belong here
         if (message.status === 'ready') {
-          astilectron.sendMessage({ name: 'username' }, message => {
-            if (message.name === 'username.callback') {
-              asticode.notifier.info("Username: " + message.payload.username)
-            }
-            actions.setUsername(message.payload.username),
-            actions.setScreen('chat')
-          })
+          store.screen = 'chat'
         }
       }
     })
   }
 
   render () {
-    const state = this.state
-    const { actions } = this.props
-    switch (this.state.screen) {
-      case 'chat':
-        return <Chat state={state} actions={actions} />
-      default:
-        return <Main />
-    }
+    console.log('app render')
+    const store = this.props.store
+    return <Root store={store} />
   }
 }
