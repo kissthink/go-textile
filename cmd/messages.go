@@ -129,7 +129,7 @@ func callLsMessages(opts map[string]string) error {
 		return err
 	}
 
-	return callLsMessages(map[string]string{
+	return callLs(map[string]string{
 		"thread": opts["thread"],
 		"offset": list[len(list)-1].Id,
 		"limit":  opts["limit"],

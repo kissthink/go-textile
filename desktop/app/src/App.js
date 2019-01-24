@@ -1,27 +1,42 @@
-/* global asticode astilectron */
+/* global astilectron, window */
 import React, { Component } from 'react'
-import { observer } from 'mobx-react'
+import { observer, inject } from 'mobx-react'
 import Root from './Root'
+import './App.css'
 
-export @observer class App extends Component {
+@inject('store') @observer
+class App extends Component {
   componentDidMount () {
-    const store = this.props.store
-    astilectron.onMessage(message => {
-      console.log(message)
-      if (message.name === 'status') {
-        asticode.notifier.info('Status: ' + message.status)
-        store.status = message.status
-        // TODO: This doesn't really belong here
-        if (message.status === 'ready') {
-          store.screen = 'chat'
+    const { store } = this.props
+    if ('astilectron' in window) {
+      astilectron.onMessage(message => {
+        switch (message.name) {
+          case 'status':
+            store.setStatus(message.status)
+            store.setScreen('settings')
+            break
+          default:
+            console.log(message)
         }
-      }
-    })
+      })
+    } else {
+      setTimeout(() => {
+        store.setStatus('starting')
+      }, 500)
+      setTimeout(() => {
+        store.setStatus('ready')
+        store.ui.setScreen('settings')
+      }, 1000)
+    }
   }
 
   render () {
-    console.log('app render')
-    const store = this.props.store
-    return <Root store={store} />
+    return (
+      <div>
+        <Root />
+      </div>
+    )
   }
 }
+
+export default App
