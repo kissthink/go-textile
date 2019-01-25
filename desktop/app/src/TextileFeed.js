@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import SendMessageForm from './MessageForm'
+import MessageForm from './MessageForm'
 import ThreadList from './ThreadList'
 import { observer, inject } from 'mobx-react'
 import ThreadFeed from './ThreadFeed'
@@ -20,7 +20,7 @@ class TextileFeed extends Component {
             <Segment basic style={{ margin: 0, height: 'calc(100% - 100px)' }}>
               <ThreadFeed />
             </Segment>
-            <SendMessageForm />
+            <MessageForm onSubmit={msg => { msg && this.props.store.thread.addMessage(msg) }} />
           </Grid.Column>
         </Grid.Row>
       </Grid>

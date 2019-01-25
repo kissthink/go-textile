@@ -26,9 +26,11 @@ export const API = {
   getPeers: thread => request('get', `/threads/${thread}/peers`, {}),
   getFiles: opts => request('get', '/files', opts),
   getComments: block => request('get', `/blocks/${block}/comments`, {}),
+  addComment: (body, block) => request('post', `/blocks/${block}/comments`, { args: [body] }),
   getLikes: block => request('get', `/blocks/${block}/likes`, {}),
   getBlocks: opts => request('get', '/blocks', { opts }),
   getThreads: () => request('get', '/threads', {}),
   addMessage: (body, thread) => request('post', `/threads/${thread}/messages`, { args: [body] }),
-  getProfile: () => request('get', '/profile', {})
+  getProfile: () => request('get', '/profile', {}),
+  checkMessages: () => request('post', '/cafes/messages', {})
 }

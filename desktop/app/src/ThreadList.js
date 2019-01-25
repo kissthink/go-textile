@@ -5,7 +5,6 @@ import { observer, inject } from 'mobx-react'
 @inject('store') @observer
 class ThreadList extends Component {
   componentDidMount () {
-    console.log('thread list')
     const { store } = this.props
     if (store.threads.length > 0 && store.thread.info === null) {
       store.thread.setThread(store.threads[0])

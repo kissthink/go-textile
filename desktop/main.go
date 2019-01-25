@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -23,13 +22,12 @@ import (
 	"github.com/asticode/go-astilectron-bootstrap"
 	"github.com/asticode/go-astilog"
 	"github.com/mitchellh/go-homedir"
-	// "github.com/skip2/go-qrcode"
 	"github.com/textileio/textile-go/core"
 	"github.com/textileio/textile-go/cmd"
 	"github.com/textileio/textile-go/gateway"
 	"github.com/textileio/textile-go/ipfs"
 	"github.com/textileio/textile-go/keypair"
-	"github.com/textileio/textile-go/repo"
+	// "github.com/textileio/textile-go/repo"
 )
 
 var (
@@ -120,22 +118,6 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 
 	menu = t.NewMenu([]*astilectron.MenuItemOptions{
 		{
-			Label: astilectron.PtrStr("Open..."),
-			OnClick: func(e astilectron.Event) (deleteListener bool) {
-				astilog.Info("Opening backup folder...")
-				browser.OpenFile(config.BackupFolder)
-				return
-			},
-		},
-		{
-			Label: astilectron.PtrStr("Check Messages"),
-			OnClick: func(e astilectron.Event) (deleteListener bool) {
-				astilog.Info("Checking Messages...")
-				node.CheckCafeMessages()
-				return
-			},
-		},
-		{
 			Label: astilectron.PtrStr("Quit"),
 			OnClick: func(e astilectron.Event) (deleteListener bool) {
 				astilog.Info("Quitting...")
@@ -177,44 +159,47 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 		}
 	}()
 
-	// subscribe to notifications
-	go func() {
-		for {
-			select {
-			case note, ok := <-node.NotificationCh():
-				if !ok {
-					return
-				}
-				username := node.ContactUsername(note.ActorId)
-				var uinote = a.NewNotification(&astilectron.NotificationOptions{
-					Title: note.Subject,
-					Body:  fmt.Sprintf("%s: %s.", username, note.Body),
-					Icon:  "/resources/icon.png",
-				})
+	// // subscribe to notifications
+	// go func() {
+	// 	for {
+	// 		select {
+	// 		case note, ok := <-node.NotificationCh():
+	// 			if !ok {
+	// 				return
+	// 			}
+	// 			// username, avatar := node.ContactDisplayInfo(note.ActorId)
+	// 			// astilog.Info(username)
+	// 			// astilog.Info(avatar)
+	// 			// var uinote = a.NewNotification(&astilectron.NotificationOptions{
+	// 			// 	Title: note.Subject,
+	// 			// 	Body:  fmt.Sprintf("%s: %s.", username, note.Body),
+	// 			// 	Icon:  avatar,
+	// 			// })
 
-				// tmp auto-accept thread invites
-				if note.Type == repo.InviteReceivedNotification.Description() {
-					go func(tid string) {
-						if _, err := node.AcceptThreadInvite(tid); err != nil {
-							astilog.Error(err)
-						}
-					}(note.BlockId)
-				}
+	// 			// tmp auto-accept thread invites
+	// 			if note.Type == repo.InviteReceivedNotification.Description() {
+	// 				go func(tid string) {
+	// 					astilog.Info(tid)
+	// 					// if _, err := node.AcceptThreadInvite(tid); err != nil {
+	// 					// 	astilog.Error(err)
+	// 					// }
+	// 				}(note.BlockId)
+	// 			}
 
-				// show notification
-				go func(n *astilectron.Notification) {
-					if err := n.Create(); err != nil {
-						astilog.Error(err)
-						return
-					}
-					if err := n.Show(); err != nil {
-						astilog.Error(err)
-						return
-					}
-				}(uinote)
-			}
-		}
-	}()
+	// 			// // show notification
+	// 			// go func(n *astilectron.Notification) {
+	// 			// 	if err := n.Create(); err != nil {
+	// 			// 		astilog.Error(err)
+	// 			// 		return
+	// 			// 	}
+	// 			// 	if err := n.Show(); err != nil {
+	// 			// 		astilog.Error(err)
+	// 			// 		return
+	// 			// 	}
+	// 			// }(uinote)
+	// 		}
+	// 	}
+	// }()
 
 	// print information to terminal
 	printSplash()
@@ -260,19 +245,21 @@ func toMap(data interface{}) (map[string]interface{}, error) {
 func handleMessage(_ *astilectron.Window, m bootstrap.MessageIn) (interface{}, error) {
 	astilog.Info(m.Name)
 	switch m.Name {
-	case "backup":
+	case "setBackupFolder":
 		var folder string
 		if err := json.Unmarshal(m.Payload, &folder); err != nil {
 			return nil, err
 		}
 		config.BackupFolder = folder
 		WriteConfig(node.RepoPath(), config)
-		return map[string]interface{}{
-			"success": true,
-		}, nil
+		return true, nil
+	case "openBackupFolder":
+		browser.OpenFile(config.BackupFolder)
+		return true, nil
 	default:
 		return map[string]interface{}{}, nil
 	}
+	return map[string]interface{}{}, nil
 }
 
 func backupFile(id string, node *core.Textile, tmpBase string) error {

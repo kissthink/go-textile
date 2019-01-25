@@ -1,23 +1,39 @@
 import React, { Component } from 'react'
-import { Feed, Icon, Image } from 'semantic-ui-react'
+import { Feed, Icon, Image, Divider } from 'semantic-ui-react'
 import { observer, inject } from 'mobx-react'
 import Moment from 'react-moment'
 
 @inject('store') @observer
 class ThreadFeed extends Component {
   componentDidMount () {
-    console.log('thread feed')
+    this.scrollToBottom()
+  }
+  componentDidUpdate () {
+    this.scrollToBottom()
+  }
+  scrollToBottom () {
+    if (this.target) {
+      this.target.scrollIntoView(false)
+    }
   }
   render () {
-    const { updates } = this.props.store.thread
+    const { thread } = this.props.store
     return (
       <Feed style={{ paddingRight: '1em', height: '100%', overflowY: 'auto' }}>
-        {updates && updates
-          .slice()
+        {thread.info && thread.updates.length < thread.info.block_cnt &&
+          <Divider horizontal
+            onClick={() => thread.getUpdates(thread.updates.length + 25)}
+          >
+            <Icon name='angle double up' />
+          </Divider>
+        }
+        {thread.updates && thread.updates
+          .filter(v => v !== undefined)
           .reverse()
           .map(update => {
             return this.renderItem(update)
           })}
+        <div ref={(el) => { this.target = el }} />
       </Feed>
     )
   }

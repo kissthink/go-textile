@@ -1,6 +1,6 @@
 import { API, GATEWAY_URL } from './index'
 
-const basicInfo = block => {
+export const basicInfo = block => {
   return {
     id: block.id,
     image: `${GATEWAY_URL}/ipns/${block.author_id}/avatar/large`,
@@ -18,6 +18,7 @@ export const Blocks = {
     let msg = basicInfo(block)
     switch (block.type) {
       case 'MESSAGE':
+      // case 'COMMENT':
         msg.summary = 'said'
         msg.extraText = block.body
         break

@@ -5,9 +5,6 @@ import Moment from 'react-moment'
 
 @inject('store') @observer
 class ThreadSummary extends Component {
-  componentDidMount () {
-    console.log('thread summary')
-  }
   render () {
     const { info } = this.props.store.thread
     if (!info) {

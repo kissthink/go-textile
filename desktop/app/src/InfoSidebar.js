@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { observer, inject } from 'mobx-react'
 import { Sidebar, Segment, Icon } from 'semantic-ui-react'
 import CommentsList from './CommentsList'
+import LikesList from './LikesList'
 
 @inject('store') @observer
 class InfoSidebar extends Component {
@@ -10,7 +11,7 @@ class InfoSidebar extends Component {
     const info = (kind => {
       switch (kind) {
         case 'likes':
-          return <CommentsList />
+          return <LikesList />
         case 'comments':
           return <CommentsList />
         default:

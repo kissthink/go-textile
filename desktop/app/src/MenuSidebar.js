@@ -29,11 +29,19 @@ class MenuSidebar extends Component {
         </Menu.Item>
         <Menu.Item as='a'
           onClick={this.handleItemClick}
-          name='qrcode'
-          active={store.ui.screen === 'qrcode'}
+          name='invite'
+          active={store.ui.screen === 'invite'}
         >
           <Icon name='qrcode' />
-            Qr Code
+          Invite
+        </Menu.Item>
+        <Menu.Item as='a'
+          onClick={this.handleItemClick}
+          name='join'
+          active={store.ui.screen === 'join'}
+        >
+          <Icon name='qrcode' />
+            Join
         </Menu.Item>
         <Menu.Item as='a'
           onClick={this.handleItemClick}

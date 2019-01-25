@@ -1,6 +1,6 @@
 import { observable, computed, action, reaction } from 'mobx'
 import { API } from './TextileAPI'
-import { Blocks } from './TextileAPI/helpers'
+import { basicInfo, Blocks } from './TextileAPI/helpers'
 
 // don't allow state modifications outside actions
 // configure({ enforceActions: 'strict' })
@@ -14,15 +14,25 @@ export class ThreadStore {
       this.getUpdates()
     })
   }
-  @action getUpdates () {
-    API.getBlocks({ thread: this.info.id, offset: '', limit: 50 })
+  @action getUpdates (limit) {
+    API.getBlocks({ thread: this.info.id, offset: '', limit: limit || 50 })
       .then(Blocks.processBlocks)
-      .then(list => { this.updates.replace(list.filter(v => v !== undefined)) })
+      .then(list => { this.updates.replace(list) })
   }
   @action addMessage (body) {
     API.addMessage(body, this.info.id)
       .then(async message => {
         this.updates.unshift(await Blocks.processBlock(message))
+      })
+  }
+  @action addComment (body) {
+    API.addComment(body, this.currentUpdate.id)
+      .then(async message => {
+        const res = basicInfo(message)
+        res.body = message.body
+        this.updates
+          // TODO: this should be made more efficient
+          .filter(u => u.id === this.currentUpdate.id)[0].comments.unshift(res)
       })
   }
   @action setThread (info) {
@@ -35,6 +45,9 @@ export class ThreadStore {
     this.currentUpdate = null
   }
   @computed get peers () {
+    if (!this.update) {
+      return {}
+    }
     return this.updates.reduce((a, b) => {
       const user = {}
       user[b.author_id] = {

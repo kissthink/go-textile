@@ -1,15 +1,13 @@
 import React, { Component } from 'react'
 import { Form } from 'semantic-ui-react'
-import { observer, inject } from 'mobx-react'
 
-@inject('store') @observer
 class MessageForm extends Component {
   constructor (props) {
     super(props)
     this.state = { message: '' }
   }
   handleSubmit = () => {
-    this.props.store.thread.addMessage(this.state.message)
+    this.props.onSubmit(this.state.message)
     this.setState({ message: '' })
   }
   // use setState here... not propagating `message` to store
@@ -23,11 +21,9 @@ class MessageForm extends Component {
             placeholder='Type something...'
             name='message'
             value={message}
-            width={14}
+            width={15}
             onChange={this.handleChange} />
-          <Form.Button
-            content='Send'
-          />
+          <Form.Button icon='send' />
         </Form.Group>
       </Form>
     )

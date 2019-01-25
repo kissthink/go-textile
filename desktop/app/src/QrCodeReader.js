@@ -10,7 +10,7 @@ class QrCodeReader extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      result: 'Waiting...'
+      result: null
     }
   }
   handleScan = (data) => {
@@ -41,15 +41,17 @@ class QrCodeReader extends Component {
             style={{ width: '100%', maxWidth: '500px' }}
           />
         </Segment>
-        <Message attached='bottom' info vertical>
-          <Icon name='help' />
-          Ready to join '{this.state.result}'?
-          <Button.Group>
-            <Button>Cancel</Button>
-            <Button.Or />
-            <Button positive>Yes</Button>
-          </Button.Group>
-        </Message>
+        {this.state.result &&
+          <Message attached='bottom' info vertical>
+            <Icon name='help' />
+            {this.state.result}
+            <Button.Group compact>
+              <Button>Cancel</Button>
+              <Button.Or />
+              <Button positive>Yes</Button>
+            </Button.Group>
+          </Message>
+        }
       </Segment>
     )
   }
