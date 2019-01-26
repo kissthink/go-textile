@@ -27,7 +27,7 @@ import (
 	"github.com/textileio/textile-go/gateway"
 	"github.com/textileio/textile-go/ipfs"
 	"github.com/textileio/textile-go/keypair"
-	// "github.com/textileio/textile-go/repo"
+	"github.com/textileio/textile-go/repo"
 )
 
 var (
@@ -159,47 +159,47 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 		}
 	}()
 
-	// // subscribe to notifications
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case note, ok := <-node.NotificationCh():
-	// 			if !ok {
-	// 				return
-	// 			}
-	// 			// username, avatar := node.ContactDisplayInfo(note.ActorId)
-	// 			// astilog.Info(username)
-	// 			// astilog.Info(avatar)
-	// 			// var uinote = a.NewNotification(&astilectron.NotificationOptions{
-	// 			// 	Title: note.Subject,
-	// 			// 	Body:  fmt.Sprintf("%s: %s.", username, note.Body),
-	// 			// 	Icon:  avatar,
-	// 			// })
+	// subscribe to notifications
+	go func() {
+		for {
+			select {
+			case note, ok := <-node.NotificationCh():
+				if !ok {
+					return
+				}
+				username, avatar := node.ContactDisplayInfo(note.ActorId)
+				astilog.Info(username)
+				astilog.Info(avatar)
+				var uinote = a.NewNotification(&astilectron.NotificationOptions{
+					Title: note.Subject,
+					Body:  fmt.Sprintf("%s: %s.", username, note.Body),
+					Icon:  avatar,
+				})
 
-	// 			// tmp auto-accept thread invites
-	// 			if note.Type == repo.InviteReceivedNotification.Description() {
-	// 				go func(tid string) {
-	// 					astilog.Info(tid)
-	// 					// if _, err := node.AcceptThreadInvite(tid); err != nil {
-	// 					// 	astilog.Error(err)
-	// 					// }
-	// 				}(note.BlockId)
-	// 			}
+				// tmp auto-accept thread invites
+				if note.Type == repo.InviteReceivedNotification.Description() {
+					go func(tid string) {
+						astilog.Info(tid)
+						if _, err := node.AcceptThreadInvite(tid); err != nil {
+							astilog.Error(err)
+						}
+					}(note.BlockId)
+				}
 
-	// 			// // show notification
-	// 			// go func(n *astilectron.Notification) {
-	// 			// 	if err := n.Create(); err != nil {
-	// 			// 		astilog.Error(err)
-	// 			// 		return
-	// 			// 	}
-	// 			// 	if err := n.Show(); err != nil {
-	// 			// 		astilog.Error(err)
-	// 			// 		return
-	// 			// 	}
-	// 			// }(uinote)
-	// 		}
-	// 	}
-	// }()
+				// show notification
+				go func(n *astilectron.Notification) {
+					if err := n.Create(); err != nil {
+						astilog.Error(err)
+						return
+					}
+					if err := n.Show(); err != nil {
+						astilog.Error(err)
+						return
+					}
+				}(uinote)
+			}
+		}
+	}()
 
 	// print information to terminal
 	printSplash()

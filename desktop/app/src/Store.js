@@ -31,9 +31,11 @@ export class ThreadStore {
         const res = basicInfo(message)
         res.body = message.body
         this.updates
-          // TODO: this should be made more efficient
-          .filter(u => u.id === this.currentUpdate.id)[0].comments.unshift(res)
+          .filter(u => u && u.id === this.currentUpdate.id)[0].comments.unshift(res)
       })
+  }
+  @action createInvite () {
+    return API.createPublicInvite({ opts: { thread: this.info.id } })
   }
   @action setThread (info) {
     this.info = info

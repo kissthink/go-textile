@@ -1,6 +1,6 @@
 /* global fetch */
-export const API_ROOT = 'http://127.0.0.1:38100/api/v0'
-export const GATEWAY_URL = 'http://127.0.0.1:3565'
+export const API_ROOT = 'http://127.0.0.1:17103/api/v0'
+export const GATEWAY_URL = 'http://127.0.0.1:32950'
 
 const request = async (method, url, { args, opts, ctype, body }) => {
   let headers = {}
@@ -32,5 +32,6 @@ export const API = {
   getThreads: () => request('get', '/threads', {}),
   addMessage: (body, thread) => request('post', `/threads/${thread}/messages`, { args: [body] }),
   getProfile: () => request('get', '/profile', {}),
-  checkMessages: () => request('post', '/cafes/messages', {})
+  checkMessages: () => request('post', '/cafes/messages', {}),
+  createPublicInvite: opts => request('post', '/invites', opts)
 }
