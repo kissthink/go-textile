@@ -168,8 +168,6 @@ func start(a *astilectron.Astilectron, w []*astilectron.Window, _ *astilectron.M
 					return
 				}
 				username, avatar := node.ContactDisplayInfo(note.ActorId)
-				astilog.Info(username)
-				astilog.Info(avatar)
 				var uinote = a.NewNotification(&astilectron.NotificationOptions{
 					Title: note.Subject,
 					Body:  fmt.Sprintf("%s: %s.", username, note.Body),

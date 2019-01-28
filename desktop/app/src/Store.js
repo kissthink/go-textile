@@ -1,64 +1,48 @@
 import { observable, computed, action, reaction } from 'mobx'
 import { API } from './TextileAPI'
-import { basicInfo, Blocks } from './TextileAPI/helpers'
 
 // don't allow state modifications outside actions
 // configure({ enforceActions: 'strict' })
 
-export class ThreadStore {
-  @observable info = null
-  @observable updates = []
-  @observable currentUpdate = null
-  constructor () {
-    reaction(() => this.info, newInfo => {
-      this.getUpdates()
-    })
+export class PeerStore {
+  @observable profile = {}
+  @observable threads = {}
+  @action async getProfile () {
+    const profile = await API.getProfile()
+    profile.username = profile.username || profile.address.slice(-8)
+    this.profile = profile
   }
-  @action getUpdates (limit) {
-    API.getBlocks({ thread: this.info.id, offset: '', limit: limit || 50 })
-      .then(Blocks.processBlocks)
-      .then(list => { this.updates.replace(list) })
+  @action async setProfile () {
+    // TODO
   }
-  @action addMessage (body) {
-    API.addMessage(body, this.info.id)
-      .then(async message => {
-        this.updates.unshift(await Blocks.processBlock(message))
-      })
-  }
-  @action addComment (body) {
-    API.addComment(body, this.currentUpdate.id)
-      .then(async message => {
-        const res = basicInfo(message)
-        res.body = message.body
-        this.updates
-          .filter(u => u && u.id === this.currentUpdate.id)[0].comments.unshift(res)
-      })
-  }
-  @action createInvite () {
-    return API.createPublicInvite({ opts: { thread: this.info.id } })
-  }
-  @action setThread (info) {
-    this.info = info
-  }
-  @action setCurrentUpdate (update) {
-    this.currentUpdate = update
-  }
-  @action clearCurrentUpdate () {
-    this.currentUpdate = null
-  }
-  @computed get peers () {
-    if (!this.update) {
-      return {}
+  @action async updateThreads () {
+    const threads = await API.getThreads()
+    for (const thread of threads) {
+      this.updateThread(thread.id)
     }
-    return this.updates.reduce((a, b) => {
-      const user = {}
-      user[b.author_id] = {
-        url: b.image,
-        username: b.username,
-        date: b.date
-      }
-      return { ...a, ...user }
-    }, {})
+  }
+  @action async updateThread (thread, limit) {
+    const newLimit = limit || (this.threads[thread] ? this.threads[thread].length : null) || 50
+    const list = await API.getFeed({ thread: thread, offset: '', limit: newLimit })
+    this.threads[thread].replace(list)
+  }
+  @action async addMessage (body, thread) {
+    this.threads[thread].unshift(await API.addMessage(body, thread))
+  }
+  @action async addLike (block) {
+    API.addLike(block)
+    // TODO: add this to the appropriate thread.block
+  }
+  @action async addComment (body, block) {
+    API.addComment(body, block)
+    // TODO: add this to the appropriate thread.block
+  }
+  @action async addFlag (block) {
+    API.addFlag(block)
+    // TODO: add this to the appropriate thread.block
+  }
+  @action async createInvite () {
+    return API.createPublicInvite({ opts: { thread: this.info.id } })
   }
 }
 
@@ -78,36 +62,22 @@ export class UIStore {
 }
 
 export default class MainStore {
-  @observable status = 'init' // initializing, starting, ready
-  @observable threads = []
-  @observable username = null
-  @observable thread = new ThreadStore()
+  @observable status = 'initializing' // initializing, starting, ready
+  @observable peer = new PeerStore()
   @observable ui = new UIStore()
   constructor () {
     reaction(() => this.isLoading, (isLoading, reaction) => {
       if (!isLoading) {
-        this.getUsername()
-        this.getThreads()
+        this.peer.getUsername()
+        this.peer.updateThreads()
         reaction.dispose()
       }
     })
   }
-  @action getUsername () {
-    API.getProfile().then(p => {
-      this.username = p.username || p.address.slice(-8)
-    })
-  }
-  @action getThreads () {
-    API.getThreads().then(list => {
-      this.threads.replace(list)
-    })
-  }
-  @action
-  setStatus (status) {
+  @action setStatus (status) {
     this.status = status
   }
-  @computed
-  get isLoading () {
+  @computed get isLoading () {
     return this.status !== 'ready'
   }
 }

@@ -21,17 +21,20 @@ const request = async (method, url, { args, opts, ctype, body }) => {
 }
 
 export const API = {
-  getMessages: opts => request('get', '/messages', opts),
-  getFile: (block, opts) => request('get', `/files/${block}`, opts),
-  getPeers: thread => request('get', `/threads/${thread}/peers`, {}),
-  getFiles: opts => request('get', '/files', opts),
+  // getFile: (block, opts) => request('get', `/files/${block}`, opts),
+  // getPeers: thread => request('get', `/threads/${thread}/peers`, {}),
+  // getFiles: opts => request('get', '/files', opts),
   getComments: block => request('get', `/blocks/${block}/comments`, {}),
   addComment: (body, block) => request('post', `/blocks/${block}/comments`, { args: [body] }),
   getLikes: block => request('get', `/blocks/${block}/likes`, {}),
-  getBlocks: opts => request('get', '/blocks', { opts }),
+  addLike: block => request('post', `/blocks/${block}/likes`, {}),
+  // getBlocks: opts => request('get', '/blocks', { opts }),
   getThreads: () => request('get', '/threads', {}),
+  getFeed: opts => request('get', '/feed', { opts }),
+  // getMessages: opts => request('get', '/messages', opts),
   addMessage: (body, thread) => request('post', `/threads/${thread}/messages`, { args: [body] }),
-  getProfile: () => request('get', '/profile', {}),
+  // getProfile: () => request('get', '/profile', {}),
   checkMessages: () => request('post', '/cafes/messages', {}),
+  // joinPublicInvite: opts => request('post', '/invites', opts),
   createPublicInvite: opts => request('post', '/invites', opts)
 }
