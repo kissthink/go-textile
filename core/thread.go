@@ -12,7 +12,7 @@ import (
 	mh "gx/ipfs/QmPnFwZ2JXKnXgMw8CdBPxn7FWh6LLdjUjxV1fKHuJnkr8/go-multihash"
 	libp2pc "gx/ipfs/QmPvyPwuCgJ7pDmrKDxRtsScJgBaM5h4EpRL2qQJsmXf4n/go-libp2p-crypto"
 	peer "gx/ipfs/QmTRhk7cgjUf2gfQ3p2M9KPECNZEW9XUrmHcFCgog4cPgB/go-libp2p-peer"
-	"gx/ipfs/QmUJYo4etAQqFfSS2rarFAE97eNGB8ej64YkRT2SmsYD4r/go-ipfs/core"
+	"gx/ipfs/QmX9YciaxRii8TARoEbmavzaeTUAe7BozeAgydsThNcTpy/go-ipfs/core"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -349,7 +349,7 @@ func (t *Thread) addOrUpdateContact(contact *repo.Contact) error {
 	}
 
 	ex := t.datastore.Contacts().Get(contact.Id)
-	if ex != nil && contact.Updated.UnixNano() >= ex.Updated.UnixNano() {
+	if ex == nil || ex.Updated.UnixNano() < contact.Updated.UnixNano() {
 		return t.datastore.Contacts().AddOrUpdate(contact)
 	}
 	return nil
