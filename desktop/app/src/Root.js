@@ -2,9 +2,10 @@ import React, { Component } from 'react'
 import { observer, inject } from 'mobx-react'
 import MenuSidebar from './MenuSidebar'
 import InfoSidebar from './InfoSidebar'
-import TextileFeed from './TextileFeed'
-import QrCodeReader from './QrCodeReader'
-import QrCodeDisplay from './QrCodeDisplay'
+// import TextileFeed from './TextileFeed'
+// import QrCodeReader from './QrCodeReader'
+// import QrCodeDisplay from './QrCodeDisplay'
+import PeerInfo from './PeerInfo'
 import { Dimmer, Loader, Sidebar, Button } from 'semantic-ui-react'
 @inject('store') @observer
 class Root extends Component {
@@ -12,12 +13,14 @@ class Root extends Component {
     const { store } = this.props
     const view = (screen => {
       switch (screen) {
-        case 'feed':
-          return <TextileFeed />
-        case 'join':
-          return <QrCodeReader />
-        case 'invite':
-          return <QrCodeDisplay />
+        // case 'feed':
+        //   return <TextileFeed />
+        // case 'join':
+        //   return <QrCodeReader />
+        // case 'invite':
+        //   return <QrCodeDisplay />
+        case 'settings':
+          return <PeerInfo />
         default:
           return (
             <Dimmer inverted active={store.isLoading}>

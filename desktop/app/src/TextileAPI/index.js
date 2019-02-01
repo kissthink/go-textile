@@ -33,8 +33,10 @@ export const API = {
   getFeed: opts => request('get', '/feed', { opts }),
   // getMessages: opts => request('get', '/messages', opts),
   addMessage: (body, thread) => request('post', `/threads/${thread}/messages`, { args: [body] }),
-  // getProfile: () => request('get', '/profile', {}),
-  checkMessages: () => request('post', '/cafes/messages', {}),
+  getProfile: () => request('get', '/profile', {}),
+  setUsername: name => request('post', '/profile/username', { args: [name] }),
+  setAvatar: hash => request('post', '/profile/username', { args: [hash] }),
+  checkMessages: () => request('post', '/cafes/messages', {})
   // joinPublicInvite: opts => request('post', '/invites', opts),
-  createPublicInvite: opts => request('post', '/invites', opts)
+  // createPublicInvite: opts => request('post', '/invites', opts)
 }

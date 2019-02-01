@@ -21,9 +21,11 @@ class MessageForm extends Component {
             placeholder='Type something...'
             name='message'
             value={message}
-            width={15}
+            // width={15}
+            fluid
+            action={{ icon: 'search' }}
             onChange={this.handleChange} />
-          <Form.Button icon='send' />
+          {/* <Form.Button icon='send' /> */}
         </Form.Group>
       </Form>
     )

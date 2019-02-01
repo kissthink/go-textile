@@ -7,13 +7,15 @@ import { API } from './TextileAPI'
 export class PeerStore {
   @observable profile = {}
   @observable threads = {}
+  @observable currentThread = null
   @action async getProfile () {
     const profile = await API.getProfile()
     profile.username = profile.username || profile.address.slice(-8)
     this.profile = profile
   }
-  @action async setProfile () {
-    // TODO
+  @action async setUsername (username) {
+    await API.setUsername(username)
+    this.profile.username = username
   }
   @action async updateThreads () {
     const threads = await API.getThreads()
@@ -41,9 +43,6 @@ export class PeerStore {
     API.addFlag(block)
     // TODO: add this to the appropriate thread.block
   }
-  @action async createInvite () {
-    return API.createPublicInvite({ opts: { thread: this.info.id } })
-  }
 }
 
 export class UIStore {
@@ -68,9 +67,8 @@ export default class MainStore {
   constructor () {
     reaction(() => this.isLoading, (isLoading, reaction) => {
       if (!isLoading) {
-        this.peer.getUsername()
+        this.peer.getProfile()
         this.peer.updateThreads()
-        reaction.dispose()
       }
     })
   }

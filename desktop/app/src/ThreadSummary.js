@@ -6,8 +6,8 @@ import Moment from 'react-moment'
 @inject('store') @observer
 class ThreadSummary extends Component {
   render () {
-    const { info } = this.props.store.thread
-    if (!info) {
+    const { currentThread, threads } = this.props.store.peer
+    if (Object.keys(threads).length < 1 || !currentThread) {
       return null
     }
     return (
