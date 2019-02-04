@@ -1,24 +1,50 @@
 import React, { Component } from 'react'
 import { observer, inject } from 'mobx-react'
-import { Card, Icon, Image } from 'semantic-ui-react'
-import Moment from 'react-moment'
+import { Card, Input, Radio, Button, Icon } from 'semantic-ui-react'
 
 @inject('store') @observer
 class SettingsCard extends Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      fileBackupEnabled: false,
+      fileBackupLocation: ''
+    }
+  }
+  handleChange = (event, data) => {
+    if (data.checked !== undefined) {
+      this.setState({ fileBackupEnabled: data.checked })
+    }
+  }
   render () {
-    const { store } = this.props
+    // const { store } = this.props
     return (
       <Card style={{ width: '100%' }}>
-        { store.peer.profile.avatar && <Image src={store.peer.profile.avatar} /> }
         <Card.Content>
           <Card.Header>Settings</Card.Header>
-          <Card.Meta>
-            Updated <Moment fromNow>{store.peer.profile.updated}</Moment>
-          </Card.Meta>
-          <Card.Description>Peer Id: {store.peer.profile.id}</Card.Description>
-        </Card.Content>
-        <Card.Content extra>
-          <Icon name='user' />{'??'} Peers
+          <Card.Description>
+            <h3>
+              <Radio
+                toggle
+                label='Enable file backup?'
+                onClick={this.handleChange}
+              />
+            </h3>
+            <Input
+              type='text'
+              disabled={!this.state.fileBackupEnabled}
+              fluid
+              onChange={e => console.log(e)}
+              action={
+                <Button as='label' for='folder-select' attached='right'>
+                  <Icon name='folder open outline' />
+                  <input type='file' id='folder-select' style={{ display: 'none' }} />
+                </Button>
+              }
+              placeholder='Choose location...'
+              defaultValue=''
+            />
+          </Card.Description>
         </Card.Content>
       </Card>
     )

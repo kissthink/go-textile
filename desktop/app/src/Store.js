@@ -24,9 +24,9 @@ export class PeerStore {
     }
   }
   @action async updateThread (thread, limit) {
-    const newLimit = limit || (this.threads[thread] ? this.threads[thread].length : null) || 50
-    const list = await API.getFeed({ thread: thread, offset: '', limit: newLimit })
-    this.threads[thread].replace(list)
+    // const newLimit = limit || (this.threads[thread] ? this.threads[thread].length : null) || 50
+    // const list = await API.getFeed({ thread: thread, offset: '', limit: newLimit })
+    // this.threads[thread].replace(list)
   }
   @action async addMessage (body, thread) {
     this.threads[thread].unshift(await API.addMessage(body, thread))

@@ -6,7 +6,8 @@ import InfoSidebar from './InfoSidebar'
 // import QrCodeReader from './QrCodeReader'
 // import QrCodeDisplay from './QrCodeDisplay'
 import PeerInfo from './PeerInfo'
-import { Dimmer, Loader, Sidebar, Button } from 'semantic-ui-react'
+import Settings from './Settings'
+import { Dimmer, Loader, Sidebar, Button, Segment } from 'semantic-ui-react'
 @inject('store') @observer
 class Root extends Component {
   render () {
@@ -20,7 +21,14 @@ class Root extends Component {
         // case 'invite':
         //   return <QrCodeDisplay />
         case 'settings':
-          return <PeerInfo />
+          return (
+            <div>
+              <Segment style={{ width: '80%', maxWidth: '500px', margin: 'auto' }}>
+                <PeerInfo />
+                <Settings />
+              </Segment>
+            </div>
+          )
         default:
           return (
             <Dimmer inverted active={store.isLoading}>
