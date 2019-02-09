@@ -27,7 +27,7 @@ class MenuSidebar extends Component {
           <Icon name='comments outline' />
             Feed
         </Menu.Item>
-        <Menu.Item as='a'
+        {/* <Menu.Item as='a'
           onClick={this.handleItemClick}
           name='invite'
           active={store.ui.screen === 'invite'}
@@ -42,7 +42,7 @@ class MenuSidebar extends Component {
         >
           <Icon name='qrcode' />
             Join
-        </Menu.Item>
+        </Menu.Item> */}
         <Menu.Item as='a'
           onClick={this.handleItemClick}
           name='settings'

@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { observer, inject } from 'mobx-react'
 import MenuSidebar from './MenuSidebar'
 import InfoSidebar from './InfoSidebar'
-// import TextileFeed from './TextileFeed'
+import TextileFeed from './TextileFeed'
 // import QrCodeReader from './QrCodeReader'
 // import QrCodeDisplay from './QrCodeDisplay'
 import PeerInfo from './PeerInfo'
@@ -14,8 +14,8 @@ class Root extends Component {
     const { store } = this.props
     const view = (screen => {
       switch (screen) {
-        // case 'feed':
-        //   return <TextileFeed />
+        case 'feed':
+          return <TextileFeed />
         // case 'join':
         //   return <QrCodeReader />
         // case 'invite':

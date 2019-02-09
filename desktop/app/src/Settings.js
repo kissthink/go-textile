@@ -7,17 +7,22 @@ class SettingsCard extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      fileBackupEnabled: false,
-      fileBackupLocation: ''
+      backupEnabled: false,
+      backupLocation: ''
     }
   }
-  handleChange = (event, data) => {
-    if (data.checked !== undefined) {
-      this.setState({ fileBackupEnabled: data.checked })
-    }
+  handleSubmit = () => {
+    this.props.onSubmit(this.state.message)
+    this.setState({ message: '' })
+  }
+  // use setState here... not propagating `message` to store
+  handleCheckbox = (e, data) => {
+    this.setState({ [data.name]: data.checked })
+  }
+  handleInput = (e, data) => {
+    this.setState({ [data.name]: data.value })
   }
   render () {
-    // const { store } = this.props
     return (
       <Card style={{ width: '100%' }}>
         <Card.Content>
@@ -26,23 +31,36 @@ class SettingsCard extends Component {
             <h3>
               <Radio
                 toggle
+                name='backupEnabled'
+                checked={this.state.backupEnabled}
                 label='Enable file backup?'
-                onClick={this.handleChange}
+                onClick={this.handleCheckbox}
               />
             </h3>
             <Input
               type='text'
-              disabled={!this.state.fileBackupEnabled}
+              disabled={!this.state.backupEnabled}
               fluid
-              onChange={e => console.log(e)}
+              name='backupLocation'
+              onChange={this.handleInput}
+              onSubmit={this.props.store.setBackupLocation}
+              value={this.state.backupLocation}
               action={
-                <Button as='label' for='folder-select' attached='right'>
-                  <Icon name='folder open outline' />
-                  <input type='file' id='folder-select' style={{ display: 'none' }} />
-                </Button>
+                <label for='folder-select'>
+                  <Button icon attached='right'>
+                    <Icon name='folder open outline' />
+                    <input
+                      disabled={!this.state.backupEnabled}
+                      type='file'
+                      id='folder-select'
+                      style={{ display: 'none' }}
+                      webkitdirectory='' directory=''
+                      onChange={this.handleInput}
+                    />
+                  </Button>
+                </label>
               }
               placeholder='Choose location...'
-              defaultValue=''
             />
           </Card.Description>
         </Card.Content>

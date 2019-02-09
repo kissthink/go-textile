@@ -19,14 +19,11 @@ export class PeerStore {
   }
   @action async updateThreads () {
     const threads = await API.getThreads()
-    for (const thread of threads) {
-      this.updateThread(thread.id)
-    }
+    this.threads = await Promise.all(threads.map(thread => this.getThread(thread.id)))
   }
-  @action async updateThread (thread, limit) {
-    // const newLimit = limit || (this.threads[thread] ? this.threads[thread].length : null) || 50
-    // const list = await API.getFeed({ thread: thread, offset: '', limit: newLimit })
-    // this.threads[thread].replace(list)
+  @action async getThread (thread, limit) {
+    const newLimit = limit || (this.threads[thread] ? this.threads[thread].length : null) || 50
+    return API.getFeed({ thread: thread, offset: '', limit: newLimit })
   }
   @action async addMessage (body, thread) {
     this.threads[thread].unshift(await API.addMessage(body, thread))
@@ -77,5 +74,9 @@ export default class MainStore {
   }
   @computed get isLoading () {
     return this.status !== 'ready'
+  }
+  @action setBackupLocation (path) {
+    this.backupLocation = path
+    // TODO: Send backup location update to backend
   }
 }

@@ -16,11 +16,11 @@ class TextileFeed extends Component {
             <ThreadList />
           </Grid.Column>
           <Grid.Column width={13}>
-            <ThreadSummary />
+            {/* <ThreadSummary />
             <Segment basic style={{ margin: 0, height: 'calc(100% - 100px)' }}>
               <ThreadFeed />
             </Segment>
-            <MessageForm onSubmit={msg => { msg && this.props.store.thread.addMessage(msg) }} />
+            <MessageForm onSubmit={msg => { msg && this.props.store.thread.addMessage(msg) }} /> */}
           </Grid.Column>
         </Grid.Row>
       </Grid>

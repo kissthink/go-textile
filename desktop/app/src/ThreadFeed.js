@@ -17,7 +17,9 @@ class ThreadFeed extends Component {
     }
   }
   render () {
-    const { thread } = this.props.store
+    const { threads, currentThread } = this.props.store.peer
+    const thread = threads[currentThread]
+    console.log(threads, currentThread)
     return (
       <Feed style={{ paddingRight: '1em', height: '100%', overflowY: 'auto' }}>
         {thread.info && thread.updates.length < thread.info.block_cnt &&

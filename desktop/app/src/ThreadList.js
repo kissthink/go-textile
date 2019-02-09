@@ -6,8 +6,8 @@ import { observer, inject } from 'mobx-react'
 class ThreadList extends Component {
   componentDidMount () {
     const { store } = this.props
-    if (store.threads.length > 0 && store.thread.info === null) {
-      store.thread.setThread(store.threads[0])
+    if (Object.keys(store.peer.threads).length > 0 && store.peer.currentThread === null) {
+      store.peer.currentThread = store.peer.threads[0]
     }
   }
   render () {
