@@ -15,8 +15,7 @@ import (
 	"github.com/mr-tron/base58/base58"
 	"github.com/pkg/browser"
 	"github.com/textileio/textile-go/crypto"
-
-	"gx/ipfs/QmX9YciaxRii8TARoEbmavzaeTUAe7BozeAgydsThNcTpy/go-ipfs/repo/fsrepo"
+	"gx/ipfs/QmUf5i9YncsDbikKC5wWBmPeLVxz35yKSQwbp11REBGFGi/go-ipfs/repo/fsrepo"
 
 	"github.com/asticode/go-astilectron"
 	"github.com/asticode/go-astilectron-bootstrap"
