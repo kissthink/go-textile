@@ -7,7 +7,7 @@ class ThreadList extends Component {
   componentDidMount () {
     const { store } = this.props
     if (Object.keys(store.peer.threads).length > 0 && store.peer.currentThread === null) {
-      store.peer.currentThread = store.peer.threads[0]
+      store.peer.currentThread = Object.keys(store.peer.threads)[0]
     }
   }
   render () {
@@ -17,19 +17,22 @@ class ThreadList extends Component {
         {/* <Header as='h3' dividing>
           Threads
         </Header> */}
-        {store.threads && store.threads.slice().map(thread => this.renderItem(thread))}
+        {store.peer.threads && Object
+          .entries(store.peer.threads)
+          .map(([id, thread]) => this.renderItem(id, thread))}
       </Menu>
     )
   }
-  renderItem (thread) {
+  renderItem (id, thread) {
     const { store } = this.props
     return (
       <Menu.Item
-        key={thread.id}
+        key={id}
+        name={id}
         onClick={() => {
-          store.thread.setThread(thread)
+          store.peer.currentThread = id
         }}
-        active={store.thread.info && thread.id === store.thread.info.id}
+        active={store.peer.currentThread && thread.id === store.peer.currentThread}
       >
         <Header as='h3' style={{ margin: 0 }}>{thread.name}</Header>
       </Menu.Item>

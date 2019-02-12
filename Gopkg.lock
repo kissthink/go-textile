@@ -328,6 +328,14 @@
   version = "v1.4.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:2927f1c0d0d1817b2735d1c74c5e89ea2c5f2ae50b41126bbd17502bd7ae2b0f"
+  name = "github.com/pkg/browser"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "0a3d74bf9ce488f035cf5bc36f753a711bc74334"
+
+[[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
@@ -369,18 +377,6 @@
   pruneopts = "T"
   revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
   version = "v1.0.6"
-
-[[projects]]
-  branch = "master"
-  digest = "1:b64a5af1be52475e6599c7a84385fd93428b5ef391f1d9c2ace8b07d8a7f107a"
-  name = "github.com/skip2/go-qrcode"
-  packages = [
-    ".",
-    "bitset",
-    "reedsolomon",
-  ]
-  pruneopts = "T"
-  revision = "cf5f9fa2f0d847edb8e038db7ed975e239095e1a"
 
 [[projects]]
   digest = "1:e95496462101745805bd4e041a5b841e108c7cf761264d53648246308de2761e"
@@ -587,9 +583,10 @@
     "github.com/onsi/ginkgo/extensions/table",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/types",
+    "github.com/pkg/browser",
+    "github.com/pkg/errors",
     "github.com/rwcarlsen/goexif/exif",
     "github.com/segmentio/ksuid",
-    "github.com/skip2/go-qrcode",
     "github.com/stretchr/testify/assert",
     "github.com/tyler-smith/go-bip39",
     "github.com/xeipuuv/gojsonschema",

@@ -19,7 +19,11 @@ export class PeerStore {
   }
   @action async updateThreads () {
     const threads = await API.getThreads()
-    this.threads = await Promise.all(threads.map(thread => this.getThread(thread.id)))
+    for (const thread of threads) {
+      this.threads[thread.id] = thread
+      this.threads[thread.id].feed = await this.getThread(thread.id)
+    }
+    console.log(Object.keys(this.threads))
   }
   @action async getThread (thread, limit) {
     const newLimit = limit || (this.threads[thread] ? this.threads[thread].length : null) || 50

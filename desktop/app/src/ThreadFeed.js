@@ -22,19 +22,14 @@ class ThreadFeed extends Component {
     console.log(threads, currentThread)
     return (
       <Feed style={{ paddingRight: '1em', height: '100%', overflowY: 'auto' }}>
-        {thread.info && thread.updates.length < thread.info.block_cnt &&
+        {/* {thread && thread.feed.length < thread.block_cnt &&
           <Divider horizontal
             onClick={() => thread.getUpdates(thread.updates.length + 25)}
           >
             <Icon name='angle double up' />
           </Divider>
-        }
-        {thread.updates && thread.updates
-          .filter(v => v !== undefined)
-          .reverse()
-          .map(update => {
-            return this.renderItem(update)
-          })}
+        } */}
+        {thread.feed && thread.feed.reverse().map(this.renderItem)}
         <div ref={(el) => { this.target = el }} />
       </Feed>
     )
