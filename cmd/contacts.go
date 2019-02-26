@@ -1,37 +1,28 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"os/signal"
 	"strconv"
+	"strings"
 
-	"github.com/textileio/textile-go/core"
-	"github.com/textileio/textile-go/repo"
-	"github.com/textileio/textile-go/util"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/textileio/textile-go/pb"
 )
 
-var errMissingStdin = errors.New("missing stdin")
-var errInvalidContact = errors.New("invalid contact format")
+var errMissingAddInfo = errors.New("missing peer id or account address")
 var errMissingPeerId = errors.New("missing peer id")
-var errMissingSearchInfo = errors.New("missing search info")
 
 func init() {
 	register(&contactsCmd{})
 }
 
 type contactsCmd struct {
-	Add    addContactsCmd  `command:"add" description:"Add a contact"`
-	Ls     lsContactsCmd   `command:"ls" description:"List known contacts"`
-	Get    getContactsCmd  `command:"get" description:"Get a known contact"`
-	Remove rmContactsCmd   `command:"rm" description:"Remove a known contact"`
-	Find   findContactsCmd `command:"find" description:"Find contacts"`
+	Add    addContactsCmd    `command:"add" description:"Add a contact"`
+	Ls     lsContactsCmd     `command:"ls" description:"List known contacts"`
+	Get    getContactsCmd    `command:"get" description:"Get a known contact"`
+	Remove rmContactsCmd     `command:"rm" description:"Remove a known contact"`
+	Search searchContactsCmd `command:"search" description:"Find contacts"`
 }
 
 func (x *contactsCmd) Name() string {
@@ -49,62 +40,91 @@ Use this command to add, list, get, and remove local contacts and find other con
 }
 
 type addContactsCmd struct {
-	Client ClientOptions `group:"Client Options"`
+	Client   ClientOptions `group:"Client Options"`
+	Username string        `short:"u" long:"username" description:"Add by username."`
+	Peer     string        `short:"p" long:"peer" description:"Add by peer ID."`
+	Address  string        `short:"a" long:"address" description:"Add by account address."`
+	Wait     int           `long:"wait" description:"Stops searching after 'wait' seconds have elapsed (max 10s)." default:"2"`
 }
 
 func (x *addContactsCmd) Usage() string {
 	return `
 
-Add to known contacts.
+Adds a contact by username, peer ID, or account address to known contacts.
 `
 }
 
 func (x *addContactsCmd) Execute(args []string) error {
 	setApi(x.Client)
-
-	fi, err := os.Stdin.Stat()
-	if err != nil {
-		return err
-	}
-	if (fi.Mode() & os.ModeCharDevice) != 0 {
-		return errMissingStdin
+	if x.Username == "" && x.Peer == "" && x.Address == "" {
+		return errMissingAddInfo
 	}
 
-	input, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return err
+	var limit int
+	if x.Peer != "" {
+		limit = 1
+	} else if x.Username != "" || x.Address != "" {
+		limit = 10
 	}
 
-	var body []byte
-	var contact repo.Contact
-	if err := json.Unmarshal(input, &contact); err != nil {
-		return errInvalidContact
+	results := handleSearchStream("contacts/search", params{
+		opts: map[string]string{
+			"username": x.Username,
+			"peer":     x.Peer,
+			"address":  x.Address,
+			"limit":    strconv.Itoa(limit),
+			"wait":     strconv.Itoa(x.Wait),
+		},
+	})
+
+	if len(results) == 0 {
+		output("No contacts were found")
+		return nil
 	}
-	if contact.Id != "" {
-		body = input
-	} else {
-		var result core.ContactQueryResult
-		if err := json.Unmarshal(input, &result); err != nil {
-			return errInvalidContact
+
+	var remote []pb.QueryResult
+	for _, res := range results {
+		if !res.Local {
+			remote = append(remote, res)
 		}
-		if result.Contact.Id == "" {
-			return errInvalidContact
+	}
+	if len(remote) == 0 {
+		output("No new contacts were found")
+		return nil
+	}
+
+	var postfix string
+	if len(remote) > 1 {
+		postfix = "s"
+	}
+	if !confirm(fmt.Sprintf("Add %d contact%s?", len(remote), postfix)) {
+		return nil
+	}
+
+	for _, result := range remote {
+		contact := new(pb.Contact)
+		if err := ptypes.UnmarshalAny(result.Value, contact); err != nil {
+			return err
 		}
-		data, err := json.Marshal(result.Contact)
+		data, err := pbMarshaler.MarshalToString(result.Value)
 		if err != nil {
 			return err
 		}
-		body = data
+
+		res, err := executeStringCmd(PUT, "contacts/"+contact.Id, params{
+			payload: strings.NewReader(data),
+			ctype:   "application/json",
+		})
+		if err != nil {
+			return err
+		}
+		if res == "ok" {
+			output("added " + result.Id)
+		} else {
+			output("error adding " + result.Id + ": " + res)
+		}
 	}
 
-	res, err := executeStringCmd(POST, "contacts", params{
-		payload: bytes.NewReader(body),
-		ctype:   "application/json",
-	})
-	if err != nil {
-		return err
-	}
-	output(res)
 	return nil
 }
 
@@ -122,12 +142,12 @@ Include the --thread flag to list contacts for a given thread.`
 
 func (x *lsContactsCmd) Execute(args []string) error {
 	setApi(x.Client)
-	var list []core.ContactInfo
+
 	res, err := executeJsonCmd(GET, "contacts", params{
 		opts: map[string]string{
 			"thread": x.Thread,
 		},
-	}, &list)
+	}, nil)
 	if err != nil {
 		return err
 	}
@@ -150,8 +170,8 @@ func (x *getContactsCmd) Execute(args []string) error {
 	if len(args) == 0 {
 		return errMissingPeerId
 	}
-	var info core.ContactInfo
-	res, err := executeJsonCmd(GET, "contacts/"+args[0], params{}, &info)
+
+	res, err := executeJsonCmd(GET, "contacts/"+args[0], params{}, nil)
 	if err != nil {
 		return err
 	}
@@ -174,6 +194,7 @@ func (x *rmContactsCmd) Execute(args []string) error {
 	if len(args) == 0 {
 		return errMissingPeerId
 	}
+
 	res, err := executeStringCmd(DEL, "contacts/"+args[0], params{})
 	if err != nil {
 		return err
@@ -182,117 +203,38 @@ func (x *rmContactsCmd) Execute(args []string) error {
 	return nil
 }
 
-type findContactsCmd struct {
+type searchContactsCmd struct {
 	Client   ClientOptions `group:"Client Options"`
-	Username string        `short:"u" long:"username" description:"A username to use in the search."`
-	Peer     string        `short:"p" long:"peer" description:"A Peer ID use in the search."`
-	Address  string        `short:"a" long:"address" description:"An account address to use in the search."`
+	Username string        `short:"u" long:"username" description:"Search by username."`
+	Peer     string        `short:"p" long:"peer" description:"Search by peer ID."`
+	Address  string        `short:"a" long:"address" description:"Search by account address."`
 	Local    bool          `long:"local" description:"Only search local contacts."`
 	Limit    int           `long:"limit" description:"Stops searching after limit results are found." default:"5"`
-	Wait     int           `long:"wait" description:"Stops searching after 'wait' seconds have elapsed." default:"5"`
+	Wait     int           `long:"wait" description:"Stops searching after 'wait' seconds have elapsed (max 10s)." default:"2"`
 }
 
-func (x *findContactsCmd) Usage() string {
+func (x *searchContactsCmd) Usage() string {
 	return `
 
-Finds contacts known locally and on the network.
+Searches locally and on the network for contacts.
 `
 }
 
-func (x *findContactsCmd) Execute(args []string) error {
+func (x *searchContactsCmd) Execute(args []string) error {
 	setApi(x.Client)
 	if x.Username == "" && x.Peer == "" && x.Address == "" {
 		return errMissingSearchInfo
 	}
 
-	resultsCh := make(chan core.ContactQueryResult)
-	outputCh := make(chan interface{})
-
-	cancel := func() {}
-	quit := make(chan os.Signal)
-	signal.Notify(quit, os.Interrupt)
-
-	go func() {
-		defer func() {
-			cancel()
-			close(resultsCh)
-			os.Exit(1)
-		}()
-
-		var res *http.Response
-		var err error
-		res, cancel, err = request(POST, "contacts/search", params{
-			opts: map[string]string{
-				"username": x.Username,
-				"peer":     x.Peer,
-				"address":  x.Address,
-				"local":    strconv.FormatBool(x.Local),
-				"limit":    strconv.Itoa(x.Limit),
-				"wait":     strconv.Itoa(x.Wait),
-			},
-		})
-		if err != nil {
-			outputCh <- err.Error()
-			return
-		}
-		defer res.Body.Close()
-
-		if res.StatusCode >= 400 {
-			body, err := util.UnmarshalString(res.Body)
-			if err != nil {
-				outputCh <- err.Error()
-			} else {
-				outputCh <- body
-			}
-			return
-		}
-
-		decoder := json.NewDecoder(res.Body)
-		for decoder.More() {
-			var result core.ContactQueryResult
-			if err := decoder.Decode(&result); err == io.EOF {
-				return
-			} else if err != nil {
-				outputCh <- err.Error()
-				return
-			}
-			resultsCh <- result
-		}
-	}()
-
-	go func() {
-		for {
-			select {
-			case res, ok := <-resultsCh:
-				if !ok {
-					return
-				}
-
-				data, err := json.MarshalIndent(res, "", "    ")
-				if err == io.EOF {
-					break
-				} else if err != nil {
-					return
-				}
-				outputCh <- string(data)
-			}
-		}
-	}()
-
-	for {
-		select {
-		case val := <-outputCh:
-			output(val)
-
-		case <-quit:
-			fmt.Println("Interrupted")
-			if cancel != nil {
-				fmt.Printf("Canceling...")
-				cancel()
-			}
-			fmt.Print("done\n")
-			os.Exit(1)
-			return nil
-		}
-	}
+	handleSearchStream("contacts/search", params{
+		opts: map[string]string{
+			"username": x.Username,
+			"peer":     x.Peer,
+			"address":  x.Address,
+			"local":    strconv.FormatBool(x.Local),
+			"limit":    strconv.Itoa(x.Limit),
+			"wait":     strconv.Itoa(x.Wait),
+		},
+	})
+	return nil
 }

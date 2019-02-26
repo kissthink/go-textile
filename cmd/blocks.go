@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/textileio/textile-go/core"
+	"github.com/textileio/textile-go/pb"
 )
 
 var errMissingBlockId = errors.New("missing block ID")
@@ -82,19 +82,20 @@ func callLsBlocks(opts map[string]string) error {
 		opts["thread"] = "default"
 	}
 
-	var list []core.BlockInfo
-	res, err := executeJsonCmd(GET, "blocks", params{opts: opts}, &list)
+	var list pb.BlockList
+	res, err := executeJsonPbCmd(GET, "blocks", params{opts: opts}, &list)
 	if err != nil {
 		return err
 	}
-
-	output(res)
+	if len(list.Items) > 0 {
+		output(res)
+	}
 
 	limit, err := strconv.Atoi(opts["limit"])
 	if err != nil {
 		return err
 	}
-	if len(list) < limit {
+	if len(list.Items) < limit {
 		return nil
 	}
 
@@ -106,7 +107,7 @@ func callLsBlocks(opts map[string]string) error {
 
 	return callLsBlocks(map[string]string{
 		"thread": opts["thread"],
-		"offset": list[len(list)-1].Id,
+		"offset": list.Items[len(list.Items)-1].Id,
 		"limit":  opts["limit"],
 	})
 }
@@ -127,8 +128,8 @@ func (x *getBlocksCmd) Execute(args []string) error {
 	if len(args) == 0 {
 		return errMissingBlockId
 	}
-	var info *core.BlockInfo
-	res, err := executeJsonCmd(GET, "blocks/"+args[0], params{}, &info)
+
+	res, err := executeJsonCmd(GET, "blocks/"+args[0], params{}, nil)
 	if err != nil {
 		return err
 	}
@@ -140,8 +141,8 @@ func callRmBlocks(args []string) error {
 	if len(args) == 0 {
 		return errMissingBlockId
 	}
-	var info *core.BlockInfo
-	res, err := executeJsonCmd(DEL, "blocks/"+args[0], params{}, &info)
+
+	res, err := executeJsonCmd(DEL, "blocks/"+args[0], params{}, nil)
 	if err != nil {
 		return err
 	}

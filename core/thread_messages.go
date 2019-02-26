@@ -1,11 +1,12 @@
 package core
 
 import (
+	"strings"
+
 	mh "gx/ipfs/QmPnFwZ2JXKnXgMw8CdBPxn7FWh6LLdjUjxV1fKHuJnkr8/go-multihash"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/textileio/textile-go/pb"
-	"github.com/textileio/textile-go/repo"
 )
 
 // AddMessage adds an outgoing message block
@@ -17,16 +18,17 @@ func (t *Thread) AddMessage(body string) (mh.Multihash, error) {
 		return nil, ErrNotWritable
 	}
 
+	body = strings.TrimSpace(body)
 	msg := &pb.ThreadMessage{
 		Body: body,
 	}
 
-	res, err := t.commitBlock(msg, pb.ThreadBlock_MESSAGE, nil)
+	res, err := t.commitBlock(msg, pb.Block_TEXT, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := t.indexBlock(res, repo.MessageBlock, "", body); err != nil {
+	if err := t.indexBlock(res, pb.Block_TEXT, "", body); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +62,7 @@ func (t *Thread) handleMessageBlock(hash mh.Multihash, block *pb.ThreadBlock) (*
 	if err := t.indexBlock(&commitResult{
 		hash:   hash,
 		header: block.Header,
-	}, repo.MessageBlock, "", msg.Body); err != nil {
+	}, pb.Block_TEXT, "", msg.Body); err != nil {
 		return nil, err
 	}
 	return msg, nil

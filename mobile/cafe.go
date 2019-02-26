@@ -3,7 +3,6 @@ package mobile
 import (
 	"github.com/golang/protobuf/proto"
 	"github.com/textileio/textile-go/core"
-	"github.com/textileio/textile-go/pb"
 )
 
 // RegisterCafe calls core RegisterCafe
@@ -24,14 +23,7 @@ func (m *Mobile) CafeSessions() ([]byte, error) {
 		return nil, core.ErrStopped
 	}
 
-	sessions, err := m.node.CafeSessions()
-	if err != nil {
-		return nil, err
-	}
-	cafeSessions := &pb.CafeSessions{
-		Values: sessions,
-	}
-	bytes, err := proto.Marshal(cafeSessions)
+	bytes, err := proto.Marshal(m.node.CafeSessions())
 	if err != nil {
 		return nil, err
 	}
@@ -51,6 +43,7 @@ func (m *Mobile) CafeSession(peerId string) ([]byte, error) {
 	if session == nil {
 		return nil, nil
 	}
+
 	bytes, err := proto.Marshal(session)
 	if err != nil {
 		return nil, err
@@ -68,6 +61,7 @@ func (m *Mobile) RefreshCafeSession(peerId string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	bytes, err := proto.Marshal(session)
 	if err != nil {
 		return nil, err

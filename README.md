@@ -204,6 +204,8 @@ You can ignore the `gx` package errors. You'll need two package managers to get 
 
 #### Install the dependencies managed by `dep` and `gx`.
 
+    $ go get github.com/ahmetb/govvv
+    $ cd $GOPATH/src/github.com/textileio/textile-go
     $ make setup
 
 #### Run the tests.
@@ -229,6 +231,11 @@ There are various things to build…
     $ go get golang.org/x/mobile/cmd/gomobile
     $ gomobile init
     $ make android_framework
+
+#### Docs
+
+    $ go get -u github.com/swaggo/swag/cmd/swag
+    $ make build_docs
 
 ## Acknowledgments
 

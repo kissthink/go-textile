@@ -1,8 +1,8 @@
 #!/bin/bash
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-IOS_DIR="${DIR}/../ios"
-ANDROID_DIR="${DIR}/../android"
+IOS_DIR="${DIR}/../dist/ios"
+ANDROID_DIR="${DIR}/../dist/android"
 VER=$1
 
 # fetch iOS framework
@@ -11,6 +11,7 @@ curl -L -o textile-go_v${VER}_ios-framework.tar.gz https://github.com/textileio/
 tar xvfz textile-go_v${VER}_ios-framework.tar.gz
 rm textile-go_v${VER}_ios-framework.tar.gz
 mv Mobile.framework ${IOS_DIR}
+mv protos ${IOS_DIR}
 
 # fetch Android framework
 mkdir -p ${ANDROID_DIR}
@@ -18,3 +19,4 @@ curl -L -o textile-go_v${VER}_android-aar.tar.gz https://github.com/textileio/te
 tar xvfz textile-go_v${VER}_android-aar.tar.gz
 rm textile-go_v${VER}_android-aar.tar.gz
 mv mobile.aar ${ANDROID_DIR}
+mv protos ${ANDROID_DIR}

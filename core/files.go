@@ -3,31 +3,28 @@ package core
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"strconv"
-	"time"
+	"strings"
 
 	ipld "gx/ipfs/QmR7TcHkR9nxkUorfi8XMTAMLUK7GiP64TWWBzY3aacc1o/go-ipld-format"
 	uio "gx/ipfs/QmfB3oNXGGq9S4B2a9YeCajoATms3Zw2VvDm8fK7VeLSV8/go-unixfs/io"
 
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/mr-tron/base58/base58"
 	"github.com/textileio/textile-go/crypto"
 	"github.com/textileio/textile-go/ipfs"
 	m "github.com/textileio/textile-go/mill"
-	"github.com/textileio/textile-go/repo"
+	"github.com/textileio/textile-go/pb"
 	"github.com/textileio/textile-go/schema"
 )
 
 var ErrFileNotFound = errors.New("file not found")
 var ErrMissingFileLink = errors.New("file link not in node")
 var ErrMissingDataLink = errors.New("data link not in node")
-
-type Keys map[string]string
-
-type Directory map[string]repo.File
 
 const FileLinkName = "f"
 const DataLinkName = "d"
@@ -40,7 +37,7 @@ type AddFileConfig struct {
 	Plaintext bool   `json:"plaintext"`
 }
 
-func (t *Textile) AddFile(mill m.Mill, conf AddFileConfig) (*repo.File, error) {
+func (t *Textile) AddFileIndex(mill m.Mill, conf AddFileConfig) (*pb.FileIndex, error) {
 	var source string
 	if conf.Use != "" {
 		source = conf.Use
@@ -69,16 +66,16 @@ func (t *Textile) AddFile(mill m.Mill, conf AddFileConfig) (*repo.File, error) {
 		return efile, nil
 	}
 
-	model := &repo.File{
+	model := &pb.FileIndex{
 		Mill:     mill.ID(),
 		Checksum: check,
 		Source:   source,
 		Opts:     opts,
 		Media:    conf.Media,
 		Name:     conf.Name,
-		Size:     len(res.File),
-		Added:    time.Now(),
-		Meta:     res.Meta,
+		Size:     int64(len(res.File)),
+		Added:    ptypes.TimestampNow(),
+		Meta:     pb.ToStruct(res.Meta),
 	}
 
 	var reader *bytes.Reader
@@ -107,9 +104,9 @@ func (t *Textile) AddFile(mill m.Mill, conf AddFileConfig) (*repo.File, error) {
 		return nil, err
 	}
 
-	// return the model fetched from the datastore to ensure
+	// Return the model fetched from the datastore to ensure
 	// consistent date formatting and therefore consistent
-	// directory hashes
+	// directory hashes.
 	return t.datastore.Files().Get(model.Hash), nil
 }
 
@@ -124,25 +121,26 @@ func (t *Textile) GetMedia(reader io.Reader, mill m.Mill) (string, error) {
 	return media, mill.AcceptMedia(media)
 }
 
-func (t *Textile) AddSchema(jsonstr string, name string) (*repo.File, error) {
-	var node schema.Node
-	if err := json.Unmarshal([]byte(jsonstr), &node); err != nil {
+func (t *Textile) AddSchema(jsonstr string, name string) (*pb.FileIndex, error) {
+	var node pb.Node
+	if err := jsonpb.UnmarshalString(jsonstr, &node); err != nil {
 		return nil, err
 	}
-	data, err := json.Marshal(&node)
+
+	data, err := pbMarshaler.MarshalToString(&node)
 	if err != nil {
 		return nil, err
 	}
 
-	return t.AddFile(&m.Schema{}, AddFileConfig{
-		Input: data,
+	return t.AddFileIndex(&m.Schema{}, AddFileConfig{
+		Input: []byte(data),
 		Media: "application/json",
 		Name:  name,
 	})
 }
 
-func (t *Textile) AddNodeFromFiles(files []repo.File) (ipld.Node, Keys, error) {
-	keys := make(Keys)
+func (t *Textile) AddNodeFromFiles(files []*pb.FileIndex) (ipld.Node, *pb.Keys, error) {
+	keys := &pb.Keys{Files: make(map[string]string)}
 	outer := uio.NewDirectory(t.node.DAG)
 
 	for i, file := range files {
@@ -150,7 +148,7 @@ func (t *Textile) AddNodeFromFiles(files []repo.File) (ipld.Node, Keys, error) {
 		if err := t.fileNode(file, outer, link); err != nil {
 			return nil, nil, err
 		}
-		keys["/"+link+"/"] = file.Key
+		keys.Files["/"+link+"/"] = file.Key
 	}
 
 	node, err := outer.GetNode()
@@ -163,19 +161,19 @@ func (t *Textile) AddNodeFromFiles(files []repo.File) (ipld.Node, Keys, error) {
 	return node, keys, nil
 }
 
-func (t *Textile) AddNodeFromDirs(dirs []Directory) (ipld.Node, Keys, error) {
-	keys := make(Keys)
+func (t *Textile) AddNodeFromDirs(dirs *pb.DirectoryList) (ipld.Node, *pb.Keys, error) {
+	keys := &pb.Keys{Files: make(map[string]string)}
 	outer := uio.NewDirectory(t.node.DAG)
 
-	for i, dir := range dirs {
+	for i, dir := range dirs.Items {
 		inner := uio.NewDirectory(t.node.DAG)
 		olink := strconv.Itoa(i)
 
-		for link, file := range dir {
+		for link, file := range dir.Files {
 			if err := t.fileNode(file, inner, link); err != nil {
 				return nil, nil, err
 			}
-			keys["/"+olink+"/"+link+"/"] = file.Key
+			keys.Files["/"+olink+"/"+link+"/"] = file.Key
 		}
 
 		node, err := inner.GetNode()
@@ -202,7 +200,7 @@ func (t *Textile) AddNodeFromDirs(dirs []Directory) (ipld.Node, Keys, error) {
 	return node, keys, nil
 }
 
-func (t *Textile) File(hash string) (*repo.File, error) {
+func (t *Textile) FileIndex(hash string) (*pb.FileIndex, error) {
 	file := t.datastore.Files().Get(hash)
 	if file == nil {
 		return nil, ErrFileNotFound
@@ -210,7 +208,7 @@ func (t *Textile) File(hash string) (*repo.File, error) {
 	return file, nil
 }
 
-func (t *Textile) FileData(hash string) (io.ReadSeeker, *repo.File, error) {
+func (t *Textile) FileData(hash string) (io.ReadSeeker, *pb.FileIndex, error) {
 	file := t.datastore.Files().Get(hash)
 	if file == nil {
 		return nil, nil, ErrFileNotFound
@@ -237,15 +235,15 @@ func (t *Textile) FileData(hash string) (io.ReadSeeker, *repo.File, error) {
 	return bytes.NewReader(plaintext), file, nil
 }
 
-func (t *Textile) TargetNodeKeys(node ipld.Node) (Keys, error) {
-	keys := make(Keys)
+func (t *Textile) TargetNodeKeys(node ipld.Node) (*pb.Keys, error) {
+	keys := &pb.Keys{Files: make(map[string]string)}
 
 	for i, link := range node.Links() {
 		fn, err := ipfs.NodeAtLink(t.node, link)
 		if err != nil {
 			return nil, err
 		}
-		if err := t.fileNodeKeys(fn, i, &keys); err != nil {
+		if err := t.fileNodeKeys(fn, i, &keys.Files); err != nil {
 			return nil, err
 		}
 	}
@@ -253,7 +251,7 @@ func (t *Textile) TargetNodeKeys(node ipld.Node) (Keys, error) {
 	return keys, nil
 }
 
-func (t *Textile) fileNode(file repo.File, dir uio.Directory, link string) error {
+func (t *Textile) fileNode(file *pb.FileIndex, dir uio.Directory, link string) error {
 	if t.datastore.Files().Get(file.Hash) == nil {
 		return ErrFileNotFound
 	}
@@ -261,26 +259,26 @@ func (t *Textile) fileNode(file repo.File, dir uio.Directory, link string) error
 	// remove locally indexed targets
 	file.Targets = nil
 
-	plaintext, err := json.Marshal(&file)
+	plaintext, err := pbMarshaler.MarshalToString(file)
 	if err != nil {
 		return err
 	}
 
-	var reader *bytes.Reader
+	var reader io.Reader
 	if file.Key != "" {
 		key, err := base58.Decode(file.Key)
 		if err != nil {
 			return err
 		}
 
-		ciphertext, err := crypto.EncryptAES(plaintext, key)
+		ciphertext, err := crypto.EncryptAES([]byte(plaintext), key)
 		if err != nil {
 			return err
 		}
 
 		reader = bytes.NewReader(ciphertext)
 	} else {
-		reader = bytes.NewReader(plaintext)
+		reader = strings.NewReader(plaintext)
 	}
 
 	pair := uio.NewDirectory(t.node.DAG)
@@ -303,7 +301,7 @@ func (t *Textile) fileNode(file repo.File, dir uio.Directory, link string) error
 	return ipfs.AddLinkToDirectory(t.node, dir, link, node.Cid().Hash().B58String())
 }
 
-func (t *Textile) fileForPair(pair ipld.Node) (*repo.File, error) {
+func (t *Textile) fileIndexForPair(pair ipld.Node) (*pb.FileIndex, error) {
 	d, _, err := pair.ResolveLink([]string{DataLinkName})
 	if err != nil {
 		return nil, err
@@ -324,7 +322,7 @@ func (t *Textile) checksum(plaintext []byte, willEncrypt bool) string {
 	return base58.FastBase58Encoding(sum[:])
 }
 
-func (t *Textile) fileNodeKeys(node ipld.Node, index int, keys *Keys) error {
+func (t *Textile) fileNodeKeys(node ipld.Node, index int, keys *map[string]string) error {
 	vkeys := *keys
 
 	if looksLikeFileNode(node) {

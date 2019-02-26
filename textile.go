@@ -3,19 +3,25 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
-	flags "github.com/jessevdk/go-flags"
-	homedir "github.com/mitchellh/go-homedir"
+	logging "gx/ipfs/QmZChCsSt8DctjceaL56Eibc29CVQq4dGKRXC5JRZ6Ppae/go-log"
+
+	"github.com/jessevdk/go-flags"
+	"github.com/mitchellh/go-homedir"
 	"github.com/textileio/textile-go/cmd"
+	"github.com/textileio/textile-go/common"
 	"github.com/textileio/textile-go/core"
 	"github.com/textileio/textile-go/gateway"
 	"github.com/textileio/textile-go/keypair"
+	"github.com/textileio/textile-go/pb"
+	"github.com/textileio/textile-go/repo"
+	"github.com/textileio/textile-go/util"
 	"github.com/textileio/textile-go/wallet"
 )
 
@@ -74,7 +80,9 @@ Shows the derived accounts (address/seed pairs) in a wallet.
 `
 }
 
-type versionCmd struct{}
+type versionCmd struct {
+	Git bool `short:"g" long:"git" description:"Show full git version summary."`
+}
 
 type initCmd struct {
 	AccountSeed string         `required:"true" short:"s" long:"seed" description:"Account seed (run 'wallet' command to generate new seeds)."`
@@ -95,13 +103,14 @@ type daemonCmd struct {
 	PinCode  string `short:"p" long:"pin-code" description:"Specify the pin code for datastore encryption (omit of none was used during init)."`
 	RepoPath string `short:"r" long:"repo-dir" description:"Specify a custom repository path."`
 	Debug    bool   `short:"d" long:"debug" description:"Set the logging level to debug."`
+	Docs     bool   `short:"s" long:"serve-docs" description:"Whether to serve the local REST API docs."`
 }
 
 type commandsCmd struct {
 }
 
 var node *core.Textile
-
+var log = logging.Logger("tex-main")
 var parser = flags.NewParser(&options{}, flags.Default)
 
 func init() {
@@ -213,7 +222,11 @@ func (x *walletAccountsCmd) Execute(args []string) error {
 }
 
 func (x *versionCmd) Execute(args []string) error {
-	fmt.Println(core.Version)
+	if x.Git {
+		fmt.Println("textile-go version " + common.GitSummary)
+	} else {
+		fmt.Println("textile-go version v" + common.Version)
+	}
 	return nil
 }
 
@@ -292,7 +305,7 @@ func (x *daemonCmd) Execute(args []string) error {
 		Node: node,
 	}
 
-	if err := startNode(); err != nil {
+	if err := startNode(x.Docs); err != nil {
 		return errors.New(fmt.Sprintf("start node failed: %s", err))
 	}
 	printSplash()
@@ -330,7 +343,7 @@ func getRepoPath(repoPath string) (string, error) {
 	return repoPath, nil
 }
 
-func startNode() error {
+func startNode(serveDocs bool) error {
 	listener := node.ThreadUpdateListener()
 
 	if err := node.Start(); err != nil {
@@ -346,13 +359,13 @@ func startNode() error {
 					return
 				}
 				switch update.Type {
-				case core.ThreadAdded:
+				case pb.WalletUpdate_THREAD_ADDED:
 					break
-				case core.ThreadRemoved:
+				case pb.WalletUpdate_THREAD_REMOVED:
 					break
-				case core.AccountPeerAdded:
+				case pb.WalletUpdate_ACCOUNT_PEER_ADDED:
 					break
-				case core.AccountPeerRemoved:
+				case pb.WalletUpdate_ACCOUNT_PEER_REMOVED:
 					break
 				}
 			}
@@ -367,17 +380,39 @@ func startNode() error {
 				if !ok {
 					return
 				}
-				if update, ok := value.(core.ThreadUpdate); ok {
-					date := update.Block.Date.Format(time.RFC822)
-					desc := update.Block.Type
-					thrd := update.ThreadId[len(update.ThreadId)-8:]
+				if update, ok := value.(*pb.FeedItem); ok {
+					thrd := update.Thread[len(update.Thread)-8:]
 
-					if update.Block.Username != "" {
-						update.Block.Username += " "
+					btype, err := core.FeedItemType(update)
+					if err != nil {
+						log.Error(err)
+						continue
 					}
 
-					msg := cmd.Grey(date+"  "+update.Block.Username+"added ") +
-						cmd.Green(desc) + cmd.Grey(" update to thread "+thrd)
+					payload, err := core.GetFeedItemPayload(update)
+					if err != nil {
+						log.Error(err)
+						continue
+					}
+					user := payload.GetUser()
+					date := payload.GetDate()
+
+					var txt string
+					txt += time.Unix(0, util.ProtoNanos(date)).Format(time.RFC822)
+					txt += "  "
+
+					if user != nil {
+						var name string
+						if user.Name != "" {
+							name = user.Name
+						} else {
+							name = user.Address[:7]
+						}
+						txt += name + " "
+					}
+					txt += "added "
+
+					msg := cmd.Grey(txt) + cmd.Green(btype.String()) + cmd.Grey(" update to "+thrd)
 					fmt.Println(msg)
 				}
 			}
@@ -393,13 +428,13 @@ func startNode() error {
 					return
 				}
 
-				date := note.Date.Format(time.RFC822)
+				date := util.ProtoTime(note.Date).Format(time.RFC822)
 				var subject string
-				if len(note.SubjectId) >= 7 {
-					subject = note.SubjectId[len(note.SubjectId)-7:]
+				if len(note.Subject) >= 7 {
+					subject = note.Subject[len(note.Subject)-7:]
 				}
 
-				msg := cmd.Grey(date+"  "+note.Username+" ") + cmd.Cyan(note.Body) +
+				msg := cmd.Grey(date+"  "+note.User.Name+" ") + cmd.Cyan(note.Body) +
 					cmd.Grey(" "+subject)
 				fmt.Println(msg)
 			}
@@ -407,7 +442,7 @@ func startNode() error {
 	}()
 
 	// start apis
-	node.StartApi(node.Config().Addresses.API)
+	node.StartApi(node.Config().Addresses.API, serveDocs)
 	gateway.Host.Start(node.Config().Addresses.Gateway)
 
 	<-node.OnlineCh()
@@ -435,13 +470,16 @@ func printSplash() {
 	if err != nil {
 		log.Fatalf("get peer id failed: %s", err)
 	}
-	fmt.Println(cmd.Grey("Textile daemon version v" + core.Version))
-	fmt.Println(cmd.Grey("Repo:    ") + cmd.Grey(node.RepoPath()))
-	fmt.Println(cmd.Grey("API:     ") + cmd.Grey(node.ApiAddr()))
-	fmt.Println(cmd.Grey("Gateway: ") + cmd.Grey(gateway.Host.Addr()))
+	fmt.Println(cmd.Grey("textile-go version: " + common.GitSummary))
+	fmt.Println(cmd.Grey("Repo version: ") + cmd.Grey(repo.Repover))
+	fmt.Println(cmd.Grey("Repo path: ") + cmd.Grey(node.RepoPath()))
+	fmt.Println(cmd.Grey("API address: ") + cmd.Grey(node.ApiAddr()))
+	fmt.Println(cmd.Grey("Gateway address: ") + cmd.Grey(gateway.Host.Addr()))
 	if node.CafeApiAddr() != "" {
-		fmt.Println(cmd.Grey("Cafe:    ") + cmd.Grey(node.CafeApiAddr()))
+		fmt.Println(cmd.Grey("Cafe address: ") + cmd.Grey(node.CafeApiAddr()))
 	}
+	fmt.Println(cmd.Grey("System version: ") + cmd.Grey(runtime.GOARCH+"/"+runtime.GOOS))
+	fmt.Println(cmd.Grey("Golang version: ") + cmd.Grey(runtime.Version()))
 	fmt.Println(cmd.Grey("PeerID:  ") + cmd.Green(pid.Pretty()))
 	fmt.Println(cmd.Grey("Account: ") + cmd.Cyan(node.Account().Address()))
 }

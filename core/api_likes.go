@@ -6,6 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// addBlockLikes godoc
+// @Summary Add a like
+// @Description Adds a like to a thread block
+// @Tags blocks
+// @Produce application/json
+// @Param id path string true "block id"
+// @Success 201 {object} pb.Like "like"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /blocks/{id}/likes [post]
 func (a *api) addBlockLikes(g *gin.Context) {
 	id := g.Param("id")
 
@@ -20,50 +31,51 @@ func (a *api) addBlockLikes(g *gin.Context) {
 		return
 	}
 
-	block, err := a.node.Block(hash.B58String())
+	like, err := a.node.Like(hash.B58String())
 	if err != nil {
 		g.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	info, err := a.node.ThreadLike(*block)
-	if err != nil {
-		g.String(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	g.JSON(http.StatusCreated, info)
+	pbJSON(g, http.StatusCreated, like)
 }
 
+// lsBlockLikes godoc
+// @Summary List likes
+// @Description Lists likes on a thread block
+// @Tags blocks
+// @Produce application/json
+// @Param id path string true "block id"
+// @Success 200 {object} pb.LikeList "likes"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /blocks/{id}/likes [get]
 func (a *api) lsBlockLikes(g *gin.Context) {
 	id := g.Param("id")
 
-	likes, err := a.node.ThreadLikes(id)
+	likes, err := a.node.Likes(id)
 	if err != nil {
 		a.abort500(g, err)
 		return
 	}
-	if len(likes) == 0 {
-		likes = make([]ThreadLikeInfo, 0)
-	}
 
-	g.JSON(http.StatusOK, likes)
+	pbJSON(g, http.StatusOK, likes)
 }
 
+// getBlockLike godoc
+// @Summary Get thread like
+// @Description Gets a thread like by block ID
+// @Tags blocks
+// @Produce application/json
+// @Param id path string true "block id"
+// @Success 200 {object} pb.Like "like"
+// @Failure 400 {string} string "Bad Request"
+// @Router /blocks/{id}/like [get]
 func (a *api) getBlockLike(g *gin.Context) {
-	id := g.Param("id")
-
-	block, err := a.node.Block(id)
-	if err != nil {
-		g.String(http.StatusNotFound, "block not found")
-		return
-	}
-
-	info, err := a.node.ThreadLike(*block)
+	info, err := a.node.Like(g.Param("id"))
 	if err != nil {
 		g.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	g.JSON(http.StatusOK, info)
+	pbJSON(g, http.StatusOK, info)
 }

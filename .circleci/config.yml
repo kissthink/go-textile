@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 
 checkout-linux: &checkout-linux
   attach_workspace:
@@ -57,7 +57,7 @@ jobs:
     - run:
         name: run tests
         command: |
-          ./test_compile.sh
+          ./test.sh
 
   build-cli-linux:
     docker:
@@ -71,13 +71,25 @@ jobs:
     - restore_cache:
         key: gx-v1-{{ checksum "package.json" }}-{{ arch }}
     - run:
+        name: install deps
+        command: |
+          dep ensure
+          gx install
+    - run:
         name: install gox
         command: |
           go get github.com/mitchellh/gox
     - run:
         name: compile
         command: |
-          gox -ldflags "-w" -osarch="linux/amd64 linux/386 linux/arm" -output="{{.OS}}-{{.Arch}}"
+          COMMIT=$(echo $CIRCLE_SHA1 | cut -c -7)
+          SUMMARY=$CIRCLE_SHA1
+          if [ "${CIRCLE_TAG}" != "" ]; then
+              SUMMARY=${CIRCLE_TAG}
+          fi
+          DATE=$(date --iso-8601=seconds)
+          FLAGS="-X github.com/textileio/textile-go/common.GitSummary=${SUMMARY} -X github.com/textileio/textile-go/common.BuildDate=${DATE} -X github.com/textileio/textile-go/common.GitCommit=${COMMIT} -X github.com/textileio/textile-go/common.GitBranch=${CIRCLE_BRANCH} -X github.com/textileio/textile-go/common.GitState=clean"
+          gox -ldflags "-w ${FLAGS}" -osarch="linux/amd64 linux/386 linux/arm" -output="{{.OS}}-{{.Arch}}"
     - run:
         name: collect artifacts
         command: |
@@ -170,8 +182,15 @@ jobs:
         name: cross-compile
         command: |
           export PATH=$GOROOT/bin:$GOPATH/bin:/usr/local/opt/go/bin:$PATH
-          gox -ldflags "-w" -osarch="darwin/amd64" -output="{{.OS}}-{{.Arch}}"
-          CC="x86_64-w64-mingw32-gcc" CXX="x86_64-w64-mingw32-g++" gox -ldflags "-w" -cgo -osarch="windows/amd64" -output="{{.OS}}-{{.Arch}}"
+          COMMIT=$(echo $CIRCLE_SHA1 | cut -c -7)
+          SUMMARY=$CIRCLE_SHA1
+          if [ "${CIRCLE_TAG}" != "" ]; then
+              SUMMARY=${CIRCLE_TAG}
+          fi
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          FLAGS="-X github.com/textileio/textile-go/common.GitSummary=${SUMMARY} -X github.com/textileio/textile-go/common.BuildDate=${DATE} -X github.com/textileio/textile-go/common.GitCommit=${COMMIT} -X github.com/textileio/textile-go/common.GitBranch=${CIRCLE_BRANCH} -X github.com/textileio/textile-go/common.GitState=clean"
+          gox -ldflags "-w ${FLAGS}" -osarch="darwin/amd64" -output="{{.OS}}-{{.Arch}}"
+          CC="x86_64-w64-mingw32-gcc" CXX="x86_64-w64-mingw32-g++" gox -ldflags "-w ${FLAGS}" -cgo -osarch="windows/amd64" -output="{{.OS}}-{{.Arch}}"
     - run:
         name: collect artifacts
         command: |
@@ -219,6 +238,11 @@ jobs:
         key: dep-v1-{{ checksum "Gopkg.lock" }}-{{ arch }}
     - restore_cache:
         key: gx-v1-{{ checksum "package.json" }}-{{ arch }}
+    - run:
+        name: install deps
+        command: |
+          dep ensure
+          gx install
     - run:
         name: install astilectron-bundler
         command: |
@@ -385,13 +409,20 @@ jobs:
         name: build ios framework
         command: |
           export PATH=$GOROOT/bin:$GOPATH/bin:/usr/local/opt/go/bin:$PATH
+          COMMIT=$(echo $CIRCLE_SHA1 | cut -c -7)
+          SUMMARY=$CIRCLE_SHA1
+          if [ "${CIRCLE_TAG}" != "" ]; then
+              SUMMARY=${CIRCLE_TAG}
+          fi
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          FLAGS="-X github.com/textileio/textile-go/common.GitSummary=${SUMMARY} -X github.com/textileio/textile-go/common.BuildDate=${DATE} -X github.com/textileio/textile-go/common.GitCommit=${COMMIT} -X github.com/textileio/textile-go/common.GitBranch=${CIRCLE_BRANCH} -X github.com/textileio/textile-go/common.GitState=clean"
           gomobile init
-          gomobile bind -ldflags "-w" -v -target=ios github.com/textileio/textile-go/mobile
+          gomobile bind -ldflags "-w ${FLAGS}" -v -target=ios github.com/textileio/textile-go/mobile
     - run:
         name: build obj c protobuf bindings
         command: |
-            mkdir protobuf_gen
-            protoc --proto_path=./pb/protos --objc_out=./protobuf_gen ./pb/protos/*
+            mkdir protos
+            protoc --proto_path=./pb/protos --objc_out=./protos ./pb/protos/*
     - run:
         name: collect artifacts
         command: |
@@ -401,7 +432,7 @@ jobs:
           fi
           OUT=~/dist/ios_framework
           mkdir -p ${OUT}
-          tar -czvf textile-go_${VERSION}_ios-framework.tar.gz Mobile.framework protobuf_gen
+          tar -czvf textile-go_${VERSION}_ios-framework.tar.gz Mobile.framework protos
           mv textile-go_${VERSION}_ios-framework.tar.gz ${OUT}/
     - persist_to_workspace:
         root: ~/dist
@@ -464,6 +495,7 @@ jobs:
           sdkmanager --licenses
           echo y | sdkmanager "build-tools;28.0.3"
           echo y | sdkmanager "platforms;android-28"
+          sdkmanager 'ndk-bundle'
     - run:
         name: install gomobile
         command: |
@@ -475,13 +507,20 @@ jobs:
           export PATH=$PATH:/usr/local/go/bin
           export GOPATH=~/go
           export PATH=$PATH:$GOPATH/bin
-          gomobile init -ndk /opt/android/android-ndk-r17b
-          gomobile bind -ldflags "-w" -v -target=android -o mobile.aar github.com/textileio/textile-go/mobile
+          COMMIT=$(echo $CIRCLE_SHA1 | cut -c -7)
+          SUMMARY=$CIRCLE_SHA1
+          if [ "${CIRCLE_TAG}" != "" ]; then
+              SUMMARY=${CIRCLE_TAG}
+          fi
+          DATE=$(date --iso-8601=seconds)
+          FLAGS="-X github.com/textileio/textile-go/common.GitSummary=${SUMMARY} -X github.com/textileio/textile-go/common.BuildDate=${DATE} -X github.com/textileio/textile-go/common.GitCommit=${COMMIT} -X github.com/textileio/textile-go/common.GitBranch=${CIRCLE_BRANCH} -X github.com/textileio/textile-go/common.GitState=clean"
+          gomobile init
+          gomobile bind -ldflags "-w ${FLAGS}" -v -target=android -o mobile.aar github.com/textileio/textile-go/mobile
     - run:
         name: build java protobuf bindings
         command: |
-            mkdir protobuf_gen
-            protoc --proto_path=./pb/protos --java_out=./protobuf_gen ./pb/protos/*
+            mkdir protos
+            protoc --proto_path=./pb/protos --java_out=./protos ./pb/protos/*
     - run:
         name: collect artifacts
         command: |
@@ -491,7 +530,7 @@ jobs:
           fi
           OUT=~/dist/android_aar
           mkdir -p ${OUT}
-          tar -czvf textile-go_${VERSION}_android-aar.tar.gz mobile.aar protobuf_gen
+          tar -czvf textile-go_${VERSION}_android-aar.tar.gz mobile.aar protos
           mv textile-go_${VERSION}_android-aar.tar.gz ${OUT}/
     - persist_to_workspace:
         root: ~/dist
@@ -499,6 +538,40 @@ jobs:
         - android_aar
     - store_artifacts:
         path: ~/dist/android_aar
+
+  build-js-types:
+    docker:
+    - image: circleci/node
+    working_directory: ~/go/src/github.com/textileio/textile-go
+    steps:
+    - checkout
+    - run:
+        name: install @textile/protobufjs
+        command: |
+            npm install @textile/protobufjs
+    - run:
+        name: build js types
+        command: |
+            mkdir protos
+            ./node_modules/@textile/protobufjs/bin/pbjs -t static-module -w es6 -o protos/index.js ./pb/protos/*
+            ./node_modules/@textile/protobufjs/bin/pbts -o protos/index.d.ts protos/index.js
+    - run:
+        name: collect artifacts
+        command: |
+          VERSION=$(echo $CIRCLE_SHA1 | cut -c -7)
+          if [ "${CIRCLE_TAG}" != "" ]; then
+              VERSION=${CIRCLE_TAG}
+          fi
+          OUT=~/dist/js_types
+          mkdir -p ${OUT}
+          tar -czvf textile-go_${VERSION}_js-types.tar.gz protos
+          mv textile-go_${VERSION}_js-types.tar.gz ${OUT}/
+    - persist_to_workspace:
+        root: ~/dist
+        paths:
+        - js_types
+    - store_artifacts:
+        path: ~/dist/js_types
 
   release:
     docker:
@@ -513,6 +586,7 @@ jobs:
           # mv ~/desktop/* ~/dist/
           mv ~/ios_framework/* ~/dist/
           mv ~/android_aar/* ~/dist/
+          mv ~/js_types/* ~/dist/
           ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ~/dist/
 
 workflows:
@@ -561,12 +635,21 @@ workflows:
             only: master
           tags:
             only: /.*/
+    - build-js-types:
+        requires:
+        - unit-test
+        filters:
+          branches:
+            only: master
+          tags:
+            only: /.*/
     - release:
         requires:
         - build-cli-darwin-windows
         - build-cli-linux
         - build-ios-framework
         - build-android-aar
+        - build-js-types
         filters:
           branches:
             ignore: /.*/

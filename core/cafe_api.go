@@ -22,7 +22,6 @@ import (
 	"github.com/textileio/textile-go/ipfs"
 	"github.com/textileio/textile-go/jwt"
 	"github.com/textileio/textile-go/pb"
-	"github.com/textileio/textile-go/repo"
 )
 
 // cafeApiVersion is the cafe api version
@@ -63,13 +62,12 @@ func (t *Textile) stopCafeApi() error {
 }
 
 // CafeInfo returns info about this cafe
-func (t *Textile) CafeInfo() *repo.Cafe {
+func (t *Textile) CafeInfo() *pb.Cafe {
 	return t.cafe.info
 }
 
 // start starts the cafe api
 func (c *cafeApi) start() {
-	// setup router
 	router := gin.Default()
 	router.GET("/", func(g *gin.Context) {
 		g.JSON(http.StatusOK, c.node.CafeInfo())

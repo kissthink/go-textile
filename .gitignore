@@ -4,7 +4,7 @@ desktop/bind_*.go
 desktop/vendor_astilectron_bundler/*
 desktop/app/build
 desktop/resources
-node_modules/*
+**/node_modules/*
 dist/textile
 dist/textile-go-*
 
@@ -67,6 +67,7 @@ _testmain.go
 *.aar
 *.jar
 *.framework
+mobile/dist
 
 # keys
 *.pem

@@ -3,7 +3,6 @@ package cmd
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -15,11 +14,11 @@ import (
 	"sync"
 	"time"
 
-	iface "gx/ipfs/QmUf5i9YncsDbikKC5wWBmPeLVxz35yKSQwbp11REBGFGi/go-ipfs/core/coreapi/interface"
+	"gx/ipfs/QmUf5i9YncsDbikKC5wWBmPeLVxz35yKSQwbp11REBGFGi/go-ipfs/core/coreapi/interface"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/textileio/textile-go/core"
-	"github.com/textileio/textile-go/repo"
+	"github.com/textileio/textile-go/pb"
 	"github.com/textileio/textile-go/schema"
 )
 
@@ -147,17 +146,17 @@ func callAddFiles(args []string, opts map[string]string) error {
 	if threadId == "" {
 		threadId = "default"
 	}
-	var thrd *core.ThreadInfo
-	if _, err := executeJsonCmd(GET, "threads/"+threadId, params{}, &thrd); err != nil {
+	var thrd pb.Thread
+	if _, err := executeJsonPbCmd(GET, "threads/"+threadId, params{}, &thrd); err != nil {
 		return err
 	}
 
-	if thrd.Schema == nil {
+	if thrd.SchemaNode == nil {
 		return core.ErrThreadSchemaRequired
 	}
 
 	var pths []string
-	var dirs []core.Directory
+	var dirs []*pb.Directory
 	var count int
 
 	start := time.Now()
@@ -182,8 +181,8 @@ func callAddFiles(args []string, opts map[string]string) error {
 		batches := batchPaths(pths, batchSize)
 		for i, batch := range batches {
 
-			ready := make(chan core.Directory, batchSize)
-			go millBatch(batch, thrd.Schema, ready, verbose)
+			ready := make(chan *pb.Directory, batchSize)
+			go millBatch(batch, thrd.SchemaNode, ready, verbose)
 
 			var cerr error
 		loop:
@@ -196,13 +195,13 @@ func callAddFiles(args []string, opts map[string]string) error {
 
 					if !group {
 						caption := strings.TrimSpace(fmt.Sprintf("%s (%d)", opts["caption"], count+1))
-						block, err := add([]core.Directory{dir}, threadId, caption, verbose)
+						files, err := add([]*pb.Directory{dir}, threadId, caption, verbose)
 						if err != nil {
 							cerr = err
 							break loop
 						}
 
-						output(fmt.Sprintf("File %d target: %s", count+1, block.Target))
+						output(fmt.Sprintf("File %d target: %s", count+1, files.Target))
 					} else {
 						dirs = append(dirs, dir)
 					}
@@ -218,26 +217,26 @@ func callAddFiles(args []string, opts map[string]string) error {
 		}
 
 	} else {
-		dir, err := mill(pth, thrd.Schema, verbose)
+		dir, err := mill(pth, thrd.SchemaNode, verbose)
 		if err != nil {
 			return err
 		}
 
-		block, err := add([]core.Directory{dir}, threadId, opts["caption"], verbose)
+		files, err := add([]*pb.Directory{dir}, threadId, opts["caption"], verbose)
 		if err != nil {
 			return err
 		}
-		output(fmt.Sprintf("File target: %s", block.Target))
+		output(fmt.Sprintf("File target: %s", files.Target))
 
 		count++
 	}
 
 	if group && len(dirs) > 0 {
-		block, err := add(dirs, threadId, opts["caption"], verbose)
+		files, err := add(dirs, threadId, opts["caption"], verbose)
 		if err != nil {
 			return err
 		}
-		output(fmt.Sprintf("Group target: %s", block.Target))
+		output(fmt.Sprintf("Group target: %s", files.Target))
 	}
 
 	dur := time.Now().Sub(start)
@@ -255,18 +254,18 @@ func callAddFiles(args []string, opts map[string]string) error {
 	return nil
 }
 
-func add(dirs []core.Directory, threadId string, caption string, verbose bool) (*core.BlockInfo, error) {
-	data, err := json.Marshal(&dirs)
+func add(dirs []*pb.Directory, threadId string, caption string, verbose bool) (*pb.Files, error) {
+	data, err := pbMarshaler.MarshalToString(&pb.DirectoryList{Items: dirs})
 	if err != nil {
 		return nil, err
 	}
 
-	var block *core.BlockInfo
-	res, err := executeJsonCmd(POST, "threads/"+threadId+"/files", params{
+	files := new(pb.Files)
+	res, err := executeJsonPbCmd(POST, "threads/"+threadId+"/files", params{
 		opts:    map[string]string{"caption": caption},
-		payload: bytes.NewReader(data),
+		payload: strings.NewReader(data),
 		ctype:   "application/json",
-	}, &block)
+	}, files)
 	if err != nil {
 		return nil, err
 	}
@@ -274,10 +273,10 @@ func add(dirs []core.Directory, threadId string, caption string, verbose bool) (
 	if verbose {
 		output(res)
 	}
-	return block, nil
+	return files, nil
 }
 
-func mill(pth string, node *schema.Node, verbose bool) (core.Directory, error) {
+func mill(pth string, node *pb.Node, verbose bool) (*pb.Directory, error) {
 	ref, err := iface.ParsePath(pth)
 	if err == nil {
 		parts := strings.Split(ref.String(), "/")
@@ -310,12 +309,12 @@ func mill(pth string, node *schema.Node, verbose bool) (core.Directory, error) {
 	var reader io.ReadSeeker
 	var ctype string
 
-	dir := make(core.Directory)
+	dir := &pb.Directory{Files: make(map[string]*pb.FileIndex)}
 
 	// traverse the schema and collect generated files
 	if node.Mill != "" {
 		var res string
-		file := &repo.File{}
+		file := &pb.FileIndex{}
 
 		mopts := newMillOpts(node.Opts)
 		mopts.setPlaintext(node.Plaintext)
@@ -344,7 +343,7 @@ func mill(pth string, node *schema.Node, verbose bool) (core.Directory, error) {
 			output(res)
 		}
 
-		dir[schema.SingleFileTag] = *file
+		dir.Files[schema.SingleFileTag] = file
 
 	} else if len(node.Links) > 0 {
 
@@ -357,7 +356,7 @@ func mill(pth string, node *schema.Node, verbose bool) (core.Directory, error) {
 		// send each link
 		for _, step := range steps {
 			var res string
-			file := &repo.File{}
+			file := &pb.FileIndex{}
 
 			mopts := newMillOpts(step.Link.Opts)
 			mopts.setPlaintext(step.Link.Plaintext)
@@ -387,14 +386,14 @@ func mill(pth string, node *schema.Node, verbose bool) (core.Directory, error) {
 				}
 
 			} else {
-				if dir[step.Link.Use].Hash == "" {
+				if dir.Files[step.Link.Use].Hash == "" {
 					return nil, errors.New(step.Link.Use + " not found")
 				}
-				mopts.setUse(dir[step.Link.Use].Hash)
+				mopts.setUse(dir.Files[step.Link.Use].Hash)
 
-				res, err = executeJsonCmd(POST, "mills"+step.Link.Mill, params{
+				res, err = executeJsonPbCmd(POST, "mills"+step.Link.Mill, params{
 					opts: mopts.val,
-				}, &file)
+				}, file)
 				if err != nil {
 					return nil, err
 				}
@@ -404,7 +403,7 @@ func mill(pth string, node *schema.Node, verbose bool) (core.Directory, error) {
 				output(res)
 			}
 
-			dir[step.Name] = *file
+			dir.Files[step.Name] = file
 		}
 	} else {
 		return nil, schema.ErrEmptySchema
@@ -413,7 +412,7 @@ func mill(pth string, node *schema.Node, verbose bool) (core.Directory, error) {
 	return dir, nil
 }
 
-func millBatch(pths []string, node *schema.Node, ready chan core.Directory, verbose bool) {
+func millBatch(pths []string, node *pb.Node, ready chan *pb.Directory, verbose bool) {
 	wg := sync.WaitGroup{}
 
 	for _, pth := range pths {
@@ -451,10 +450,10 @@ func batchPaths(pths []string, size int) [][]string {
 	return batches
 }
 
-func handleStep(mil string, reader io.Reader, opts millOpts, ctype string) (string, *repo.File, error) {
-	var file *repo.File
+func handleStep(mil string, reader io.Reader, opts millOpts, ctype string) (string, *pb.FileIndex, error) {
+	var file pb.FileIndex
 
-	res, err := executeJsonCmd(POST, "mills"+mil, params{
+	res, err := executeJsonPbCmd(POST, "mills"+mil, params{
 		opts:    opts.val,
 		payload: reader,
 		ctype:   ctype,
@@ -463,7 +462,7 @@ func handleStep(mil string, reader io.Reader, opts millOpts, ctype string) (stri
 		return "", nil, err
 	}
 
-	return res, file, nil
+	return res, &file, nil
 }
 
 func multipartReader(f *os.File) (io.ReadSeeker, string, error) {
@@ -507,19 +506,20 @@ func (x *lsFilesCmd) Execute(args []string) error {
 }
 
 func callLsFiles(opts map[string]string) error {
-	var list []core.ThreadFilesInfo
-	res, err := executeJsonCmd(GET, "files", params{opts: opts}, &list)
+	var list pb.FilesList
+	res, err := executeJsonPbCmd(GET, "files", params{opts: opts}, &list)
 	if err != nil {
 		return err
 	}
-
-	output(res)
+	if len(list.Items) > 0 {
+		output(res)
+	}
 
 	limit, err := strconv.Atoi(opts["limit"])
 	if err != nil {
 		return err
 	}
-	if len(list) < limit {
+	if len(list.Items) < limit {
 		return nil
 	}
 
@@ -531,7 +531,7 @@ func callLsFiles(opts map[string]string) error {
 
 	return callLsFiles(map[string]string{
 		"thread": opts["thread"],
-		"offset": list[len(list)-1].Block,
+		"offset": list.Items[len(list.Items)-1].Block,
 		"limit":  opts["limit"],
 	})
 }
@@ -553,8 +553,7 @@ func (x *getFilesCmd) Execute(args []string) error {
 		return errMissingFileId
 	}
 
-	var info core.ThreadFilesInfo
-	res, err := executeJsonCmd(GET, "files/"+args[0], params{}, &info)
+	res, err := executeJsonCmd(GET, "files/"+args[0], params{}, nil)
 	if err != nil {
 		return err
 	}
@@ -598,12 +597,10 @@ func (x *keysCmd) Execute(args []string) error {
 		return errMissingTarget
 	}
 
-	var keys core.Keys
-	res, err := executeJsonCmd(GET, "keys/"+args[0], params{}, &keys)
+	res, err := executeJsonCmd(GET, "keys/"+args[0], params{}, nil)
 	if err != nil {
 		return err
 	}
-
 	output(res)
 	return nil
 }

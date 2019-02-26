@@ -6,6 +6,8 @@ package pb
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import any "github.com/golang/protobuf/ptypes/any"
+import timestamp "github.com/golang/protobuf/ptypes/timestamp"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -18,18 +20,320 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
+type AddThreadConfig_Schema_Preset int32
+
+const (
+	AddThreadConfig_Schema_NONE        AddThreadConfig_Schema_Preset = 0
+	AddThreadConfig_Schema_CAMERA_ROLL AddThreadConfig_Schema_Preset = 1
+	AddThreadConfig_Schema_MEDIA       AddThreadConfig_Schema_Preset = 2
+)
+
+var AddThreadConfig_Schema_Preset_name = map[int32]string{
+	0: "NONE",
+	1: "CAMERA_ROLL",
+	2: "MEDIA",
+}
+var AddThreadConfig_Schema_Preset_value = map[string]int32{
+	"NONE":        0,
+	"CAMERA_ROLL": 1,
+	"MEDIA":       2,
+}
+
+func (x AddThreadConfig_Schema_Preset) String() string {
+	return proto.EnumName(AddThreadConfig_Schema_Preset_name, int32(x))
+}
+func (AddThreadConfig_Schema_Preset) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{0, 0, 0}
+}
+
+type FeedRequest_Mode int32
+
+const (
+	FeedRequest_CHRONO    FeedRequest_Mode = 0
+	FeedRequest_ANNOTATED FeedRequest_Mode = 1
+	FeedRequest_STACKS    FeedRequest_Mode = 2
+)
+
+var FeedRequest_Mode_name = map[int32]string{
+	0: "CHRONO",
+	1: "ANNOTATED",
+	2: "STACKS",
+}
+var FeedRequest_Mode_value = map[string]int32{
+	"CHRONO":    0,
+	"ANNOTATED": 1,
+	"STACKS":    2,
+}
+
+func (x FeedRequest_Mode) String() string {
+	return proto.EnumName(FeedRequest_Mode_name, int32(x))
+}
+func (FeedRequest_Mode) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{8, 0}
+}
+
+type WalletUpdate_Type int32
+
+const (
+	WalletUpdate_THREAD_ADDED         WalletUpdate_Type = 0
+	WalletUpdate_THREAD_REMOVED       WalletUpdate_Type = 1
+	WalletUpdate_ACCOUNT_PEER_ADDED   WalletUpdate_Type = 2
+	WalletUpdate_ACCOUNT_PEER_REMOVED WalletUpdate_Type = 3
+)
+
+var WalletUpdate_Type_name = map[int32]string{
+	0: "THREAD_ADDED",
+	1: "THREAD_REMOVED",
+	2: "ACCOUNT_PEER_ADDED",
+	3: "ACCOUNT_PEER_REMOVED",
+}
+var WalletUpdate_Type_value = map[string]int32{
+	"THREAD_ADDED":         0,
+	"THREAD_REMOVED":       1,
+	"ACCOUNT_PEER_ADDED":   2,
+	"ACCOUNT_PEER_REMOVED": 3,
+}
+
+func (x WalletUpdate_Type) String() string {
+	return proto.EnumName(WalletUpdate_Type_name, int32(x))
+}
+func (WalletUpdate_Type) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{26, 0}
+}
+
+type LogLevel_Level int32
+
+const (
+	LogLevel_CRITICAL LogLevel_Level = 0
+	LogLevel_ERROR    LogLevel_Level = 1
+	LogLevel_WARNING  LogLevel_Level = 2
+	LogLevel_NOTICE   LogLevel_Level = 3
+	LogLevel_INFO     LogLevel_Level = 4
+	LogLevel_DEBUG    LogLevel_Level = 5
+)
+
+var LogLevel_Level_name = map[int32]string{
+	0: "CRITICAL",
+	1: "ERROR",
+	2: "WARNING",
+	3: "NOTICE",
+	4: "INFO",
+	5: "DEBUG",
+}
+var LogLevel_Level_value = map[string]int32{
+	"CRITICAL": 0,
+	"ERROR":    1,
+	"WARNING":  2,
+	"NOTICE":   3,
+	"INFO":     4,
+	"DEBUG":    5,
+}
+
+func (x LogLevel_Level) String() string {
+	return proto.EnumName(LogLevel_Level_name, int32(x))
+}
+func (LogLevel_Level) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{28, 0}
+}
+
+type AddThreadConfig struct {
+	Key                  string                  `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Name                 string                  `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Schema               *AddThreadConfig_Schema `protobuf:"bytes,3,opt,name=schema,proto3" json:"schema,omitempty"`
+	Type                 Thread_Type             `protobuf:"varint,4,opt,name=type,proto3,enum=Thread_Type" json:"type,omitempty"`
+	Sharing              Thread_Sharing          `protobuf:"varint,5,opt,name=sharing,proto3,enum=Thread_Sharing" json:"sharing,omitempty"`
+	Members              []string                `protobuf:"bytes,6,rep,name=members,proto3" json:"members,omitempty"`
+	Force                bool                    `protobuf:"varint,7,opt,name=force,proto3" json:"force,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *AddThreadConfig) Reset()         { *m = AddThreadConfig{} }
+func (m *AddThreadConfig) String() string { return proto.CompactTextString(m) }
+func (*AddThreadConfig) ProtoMessage()    {}
+func (*AddThreadConfig) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{0}
+}
+func (m *AddThreadConfig) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AddThreadConfig.Unmarshal(m, b)
+}
+func (m *AddThreadConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AddThreadConfig.Marshal(b, m, deterministic)
+}
+func (dst *AddThreadConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddThreadConfig.Merge(dst, src)
+}
+func (m *AddThreadConfig) XXX_Size() int {
+	return xxx_messageInfo_AddThreadConfig.Size(m)
+}
+func (m *AddThreadConfig) XXX_DiscardUnknown() {
+	xxx_messageInfo_AddThreadConfig.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AddThreadConfig proto.InternalMessageInfo
+
+func (m *AddThreadConfig) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *AddThreadConfig) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *AddThreadConfig) GetSchema() *AddThreadConfig_Schema {
+	if m != nil {
+		return m.Schema
+	}
+	return nil
+}
+
+func (m *AddThreadConfig) GetType() Thread_Type {
+	if m != nil {
+		return m.Type
+	}
+	return Thread_Private
+}
+
+func (m *AddThreadConfig) GetSharing() Thread_Sharing {
+	if m != nil {
+		return m.Sharing
+	}
+	return Thread_NotShared
+}
+
+func (m *AddThreadConfig) GetMembers() []string {
+	if m != nil {
+		return m.Members
+	}
+	return nil
+}
+
+func (m *AddThreadConfig) GetForce() bool {
+	if m != nil {
+		return m.Force
+	}
+	return false
+}
+
+type AddThreadConfig_Schema struct {
+	Id                   string                        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Json                 string                        `protobuf:"bytes,2,opt,name=json,proto3" json:"json,omitempty"`
+	Preset               AddThreadConfig_Schema_Preset `protobuf:"varint,3,opt,name=preset,proto3,enum=AddThreadConfig_Schema_Preset" json:"preset,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
+}
+
+func (m *AddThreadConfig_Schema) Reset()         { *m = AddThreadConfig_Schema{} }
+func (m *AddThreadConfig_Schema) String() string { return proto.CompactTextString(m) }
+func (*AddThreadConfig_Schema) ProtoMessage()    {}
+func (*AddThreadConfig_Schema) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{0, 0}
+}
+func (m *AddThreadConfig_Schema) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AddThreadConfig_Schema.Unmarshal(m, b)
+}
+func (m *AddThreadConfig_Schema) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AddThreadConfig_Schema.Marshal(b, m, deterministic)
+}
+func (dst *AddThreadConfig_Schema) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddThreadConfig_Schema.Merge(dst, src)
+}
+func (m *AddThreadConfig_Schema) XXX_Size() int {
+	return xxx_messageInfo_AddThreadConfig_Schema.Size(m)
+}
+func (m *AddThreadConfig_Schema) XXX_DiscardUnknown() {
+	xxx_messageInfo_AddThreadConfig_Schema.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AddThreadConfig_Schema proto.InternalMessageInfo
+
+func (m *AddThreadConfig_Schema) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *AddThreadConfig_Schema) GetJson() string {
+	if m != nil {
+		return m.Json
+	}
+	return ""
+}
+
+func (m *AddThreadConfig_Schema) GetPreset() AddThreadConfig_Schema_Preset {
+	if m != nil {
+		return m.Preset
+	}
+	return AddThreadConfig_Schema_NONE
+}
+
+type Step struct {
+	Name                 string   `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
+	Link                 *Link    `protobuf:"bytes,2,opt,name=link,proto3" json:"link,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Step) Reset()         { *m = Step{} }
+func (m *Step) String() string { return proto.CompactTextString(m) }
+func (*Step) ProtoMessage()    {}
+func (*Step) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{1}
+}
+func (m *Step) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Step.Unmarshal(m, b)
+}
+func (m *Step) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Step.Marshal(b, m, deterministic)
+}
+func (dst *Step) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Step.Merge(dst, src)
+}
+func (m *Step) XXX_Size() int {
+	return xxx_messageInfo_Step.Size(m)
+}
+func (m *Step) XXX_DiscardUnknown() {
+	xxx_messageInfo_Step.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Step proto.InternalMessageInfo
+
+func (m *Step) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Step) GetLink() *Link {
+	if m != nil {
+		return m.Link
+	}
+	return nil
+}
+
 type Directory struct {
-	Files                map[string]*File `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
-	XXX_unrecognized     []byte           `json:"-"`
-	XXX_sizecache        int32            `json:"-"`
+	Files                map[string]*FileIndex `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *Directory) Reset()         { *m = Directory{} }
 func (m *Directory) String() string { return proto.CompactTextString(m) }
 func (*Directory) ProtoMessage()    {}
 func (*Directory) Descriptor() ([]byte, []int) {
-	return fileDescriptor_view_5419c27765a82837, []int{0}
+	return fileDescriptor_view_bb69a50d37262d43, []int{2}
 }
 func (m *Directory) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Directory.Unmarshal(m, b)
@@ -49,83 +353,1580 @@ func (m *Directory) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Directory proto.InternalMessageInfo
 
-func (m *Directory) GetFiles() map[string]*File {
+func (m *Directory) GetFiles() map[string]*FileIndex {
 	if m != nil {
 		return m.Files
 	}
 	return nil
 }
 
-type MobilePreparedFiles struct {
-	Dir                  *Directory        `protobuf:"bytes,1,opt,name=dir,proto3" json:"dir,omitempty"`
-	Pin                  map[string]string `protobuf:"bytes,2,rep,name=pin,proto3" json:"pin,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+type DirectoryList struct {
+	Items                []*Directory `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
+}
+
+func (m *DirectoryList) Reset()         { *m = DirectoryList{} }
+func (m *DirectoryList) String() string { return proto.CompactTextString(m) }
+func (*DirectoryList) ProtoMessage()    {}
+func (*DirectoryList) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{3}
+}
+func (m *DirectoryList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DirectoryList.Unmarshal(m, b)
+}
+func (m *DirectoryList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DirectoryList.Marshal(b, m, deterministic)
+}
+func (dst *DirectoryList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DirectoryList.Merge(dst, src)
+}
+func (m *DirectoryList) XXX_Size() int {
+	return xxx_messageInfo_DirectoryList.Size(m)
+}
+func (m *DirectoryList) XXX_DiscardUnknown() {
+	xxx_messageInfo_DirectoryList.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DirectoryList proto.InternalMessageInfo
+
+func (m *DirectoryList) GetItems() []*Directory {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+type Keys struct {
+	Files                map[string]string `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
 }
 
-func (m *MobilePreparedFiles) Reset()         { *m = MobilePreparedFiles{} }
-func (m *MobilePreparedFiles) String() string { return proto.CompactTextString(m) }
-func (*MobilePreparedFiles) ProtoMessage()    {}
-func (*MobilePreparedFiles) Descriptor() ([]byte, []int) {
-	return fileDescriptor_view_5419c27765a82837, []int{1}
+func (m *Keys) Reset()         { *m = Keys{} }
+func (m *Keys) String() string { return proto.CompactTextString(m) }
+func (*Keys) ProtoMessage()    {}
+func (*Keys) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{4}
 }
-func (m *MobilePreparedFiles) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_MobilePreparedFiles.Unmarshal(m, b)
+func (m *Keys) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Keys.Unmarshal(m, b)
 }
-func (m *MobilePreparedFiles) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_MobilePreparedFiles.Marshal(b, m, deterministic)
+func (m *Keys) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Keys.Marshal(b, m, deterministic)
 }
-func (dst *MobilePreparedFiles) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MobilePreparedFiles.Merge(dst, src)
+func (dst *Keys) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Keys.Merge(dst, src)
 }
-func (m *MobilePreparedFiles) XXX_Size() int {
-	return xxx_messageInfo_MobilePreparedFiles.Size(m)
+func (m *Keys) XXX_Size() int {
+	return xxx_messageInfo_Keys.Size(m)
 }
-func (m *MobilePreparedFiles) XXX_DiscardUnknown() {
-	xxx_messageInfo_MobilePreparedFiles.DiscardUnknown(m)
+func (m *Keys) XXX_DiscardUnknown() {
+	xxx_messageInfo_Keys.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MobilePreparedFiles proto.InternalMessageInfo
+var xxx_messageInfo_Keys proto.InternalMessageInfo
 
-func (m *MobilePreparedFiles) GetDir() *Directory {
+func (m *Keys) GetFiles() map[string]string {
 	if m != nil {
-		return m.Dir
+		return m.Files
 	}
 	return nil
 }
 
-func (m *MobilePreparedFiles) GetPin() map[string]string {
+type NewInvite struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Key                  string   `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Inviter              string   `protobuf:"bytes,3,opt,name=inviter,proto3" json:"inviter,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *NewInvite) Reset()         { *m = NewInvite{} }
+func (m *NewInvite) String() string { return proto.CompactTextString(m) }
+func (*NewInvite) ProtoMessage()    {}
+func (*NewInvite) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{5}
+}
+func (m *NewInvite) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NewInvite.Unmarshal(m, b)
+}
+func (m *NewInvite) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NewInvite.Marshal(b, m, deterministic)
+}
+func (dst *NewInvite) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NewInvite.Merge(dst, src)
+}
+func (m *NewInvite) XXX_Size() int {
+	return xxx_messageInfo_NewInvite.Size(m)
+}
+func (m *NewInvite) XXX_DiscardUnknown() {
+	xxx_messageInfo_NewInvite.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NewInvite proto.InternalMessageInfo
+
+func (m *NewInvite) GetId() string {
 	if m != nil {
-		return m.Pin
+		return m.Id
+	}
+	return ""
+}
+
+func (m *NewInvite) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *NewInvite) GetInviter() string {
+	if m != nil {
+		return m.Inviter
+	}
+	return ""
+}
+
+type InviteView struct {
+	Id                   string               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                 string               `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Inviter              *User                `protobuf:"bytes,3,opt,name=inviter,proto3" json:"inviter,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,4,opt,name=date,proto3" json:"date,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *InviteView) Reset()         { *m = InviteView{} }
+func (m *InviteView) String() string { return proto.CompactTextString(m) }
+func (*InviteView) ProtoMessage()    {}
+func (*InviteView) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{6}
+}
+func (m *InviteView) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_InviteView.Unmarshal(m, b)
+}
+func (m *InviteView) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_InviteView.Marshal(b, m, deterministic)
+}
+func (dst *InviteView) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_InviteView.Merge(dst, src)
+}
+func (m *InviteView) XXX_Size() int {
+	return xxx_messageInfo_InviteView.Size(m)
+}
+func (m *InviteView) XXX_DiscardUnknown() {
+	xxx_messageInfo_InviteView.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_InviteView proto.InternalMessageInfo
+
+func (m *InviteView) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *InviteView) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *InviteView) GetInviter() *User {
+	if m != nil {
+		return m.Inviter
+	}
+	return nil
+}
+
+func (m *InviteView) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+type InviteViewList struct {
+	Items                []*InviteView `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *InviteViewList) Reset()         { *m = InviteViewList{} }
+func (m *InviteViewList) String() string { return proto.CompactTextString(m) }
+func (*InviteViewList) ProtoMessage()    {}
+func (*InviteViewList) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{7}
+}
+func (m *InviteViewList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_InviteViewList.Unmarshal(m, b)
+}
+func (m *InviteViewList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_InviteViewList.Marshal(b, m, deterministic)
+}
+func (dst *InviteViewList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_InviteViewList.Merge(dst, src)
+}
+func (m *InviteViewList) XXX_Size() int {
+	return xxx_messageInfo_InviteViewList.Size(m)
+}
+func (m *InviteViewList) XXX_DiscardUnknown() {
+	xxx_messageInfo_InviteViewList.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_InviteViewList proto.InternalMessageInfo
+
+func (m *InviteViewList) GetItems() []*InviteView {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+type FeedRequest struct {
+	Thread               string           `protobuf:"bytes,1,opt,name=thread,proto3" json:"thread,omitempty"`
+	Offset               string           `protobuf:"bytes,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit                int32            `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Mode                 FeedRequest_Mode `protobuf:"varint,4,opt,name=mode,proto3,enum=FeedRequest_Mode" json:"mode,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
+}
+
+func (m *FeedRequest) Reset()         { *m = FeedRequest{} }
+func (m *FeedRequest) String() string { return proto.CompactTextString(m) }
+func (*FeedRequest) ProtoMessage()    {}
+func (*FeedRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{8}
+}
+func (m *FeedRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FeedRequest.Unmarshal(m, b)
+}
+func (m *FeedRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FeedRequest.Marshal(b, m, deterministic)
+}
+func (dst *FeedRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FeedRequest.Merge(dst, src)
+}
+func (m *FeedRequest) XXX_Size() int {
+	return xxx_messageInfo_FeedRequest.Size(m)
+}
+func (m *FeedRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_FeedRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FeedRequest proto.InternalMessageInfo
+
+func (m *FeedRequest) GetThread() string {
+	if m != nil {
+		return m.Thread
+	}
+	return ""
+}
+
+func (m *FeedRequest) GetOffset() string {
+	if m != nil {
+		return m.Offset
+	}
+	return ""
+}
+
+func (m *FeedRequest) GetLimit() int32 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+func (m *FeedRequest) GetMode() FeedRequest_Mode {
+	if m != nil {
+		return m.Mode
+	}
+	return FeedRequest_CHRONO
+}
+
+type FeedItem struct {
+	Block                string   `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Thread               string   `protobuf:"bytes,2,opt,name=thread,proto3" json:"thread,omitempty"`
+	Payload              *any.Any `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *FeedItem) Reset()         { *m = FeedItem{} }
+func (m *FeedItem) String() string { return proto.CompactTextString(m) }
+func (*FeedItem) ProtoMessage()    {}
+func (*FeedItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{9}
+}
+func (m *FeedItem) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FeedItem.Unmarshal(m, b)
+}
+func (m *FeedItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FeedItem.Marshal(b, m, deterministic)
+}
+func (dst *FeedItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FeedItem.Merge(dst, src)
+}
+func (m *FeedItem) XXX_Size() int {
+	return xxx_messageInfo_FeedItem.Size(m)
+}
+func (m *FeedItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_FeedItem.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FeedItem proto.InternalMessageInfo
+
+func (m *FeedItem) GetBlock() string {
+	if m != nil {
+		return m.Block
+	}
+	return ""
+}
+
+func (m *FeedItem) GetThread() string {
+	if m != nil {
+		return m.Thread
+	}
+	return ""
+}
+
+func (m *FeedItem) GetPayload() *any.Any {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+type FeedItemList struct {
+	Items                []*FeedItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Count                int32       `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	Next                 string      `protobuf:"bytes,3,opt,name=next,proto3" json:"next,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *FeedItemList) Reset()         { *m = FeedItemList{} }
+func (m *FeedItemList) String() string { return proto.CompactTextString(m) }
+func (*FeedItemList) ProtoMessage()    {}
+func (*FeedItemList) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{10}
+}
+func (m *FeedItemList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FeedItemList.Unmarshal(m, b)
+}
+func (m *FeedItemList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FeedItemList.Marshal(b, m, deterministic)
+}
+func (dst *FeedItemList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FeedItemList.Merge(dst, src)
+}
+func (m *FeedItemList) XXX_Size() int {
+	return xxx_messageInfo_FeedItemList.Size(m)
+}
+func (m *FeedItemList) XXX_DiscardUnknown() {
+	xxx_messageInfo_FeedItemList.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FeedItemList proto.InternalMessageInfo
+
+func (m *FeedItemList) GetItems() []*FeedItem {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+func (m *FeedItemList) GetCount() int32 {
+	if m != nil {
+		return m.Count
+	}
+	return 0
+}
+
+func (m *FeedItemList) GetNext() string {
+	if m != nil {
+		return m.Next
+	}
+	return ""
+}
+
+type Merge struct {
+	Block                string               `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	Targets              []*FeedItem          `protobuf:"bytes,4,rep,name=targets,proto3" json:"targets,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Merge) Reset()         { *m = Merge{} }
+func (m *Merge) String() string { return proto.CompactTextString(m) }
+func (*Merge) ProtoMessage()    {}
+func (*Merge) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{11}
+}
+func (m *Merge) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Merge.Unmarshal(m, b)
+}
+func (m *Merge) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Merge.Marshal(b, m, deterministic)
+}
+func (dst *Merge) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Merge.Merge(dst, src)
+}
+func (m *Merge) XXX_Size() int {
+	return xxx_messageInfo_Merge.Size(m)
+}
+func (m *Merge) XXX_DiscardUnknown() {
+	xxx_messageInfo_Merge.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Merge proto.InternalMessageInfo
+
+func (m *Merge) GetBlock() string {
+	if m != nil {
+		return m.Block
+	}
+	return ""
+}
+
+func (m *Merge) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Merge) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *Merge) GetTargets() []*FeedItem {
+	if m != nil {
+		return m.Targets
+	}
+	return nil
+}
+
+type Ignore struct {
+	Block                string               `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	Target               *FeedItem            `protobuf:"bytes,4,opt,name=target,proto3" json:"target,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Ignore) Reset()         { *m = Ignore{} }
+func (m *Ignore) String() string { return proto.CompactTextString(m) }
+func (*Ignore) ProtoMessage()    {}
+func (*Ignore) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{12}
+}
+func (m *Ignore) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Ignore.Unmarshal(m, b)
+}
+func (m *Ignore) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Ignore.Marshal(b, m, deterministic)
+}
+func (dst *Ignore) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Ignore.Merge(dst, src)
+}
+func (m *Ignore) XXX_Size() int {
+	return xxx_messageInfo_Ignore.Size(m)
+}
+func (m *Ignore) XXX_DiscardUnknown() {
+	xxx_messageInfo_Ignore.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Ignore proto.InternalMessageInfo
+
+func (m *Ignore) GetBlock() string {
+	if m != nil {
+		return m.Block
+	}
+	return ""
+}
+
+func (m *Ignore) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Ignore) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *Ignore) GetTarget() *FeedItem {
+	if m != nil {
+		return m.Target
+	}
+	return nil
+}
+
+type Flag struct {
+	Block                string               `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	Target               *FeedItem            `protobuf:"bytes,4,opt,name=target,proto3" json:"target,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Flag) Reset()         { *m = Flag{} }
+func (m *Flag) String() string { return proto.CompactTextString(m) }
+func (*Flag) ProtoMessage()    {}
+func (*Flag) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{13}
+}
+func (m *Flag) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Flag.Unmarshal(m, b)
+}
+func (m *Flag) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Flag.Marshal(b, m, deterministic)
+}
+func (dst *Flag) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Flag.Merge(dst, src)
+}
+func (m *Flag) XXX_Size() int {
+	return xxx_messageInfo_Flag.Size(m)
+}
+func (m *Flag) XXX_DiscardUnknown() {
+	xxx_messageInfo_Flag.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Flag proto.InternalMessageInfo
+
+func (m *Flag) GetBlock() string {
+	if m != nil {
+		return m.Block
+	}
+	return ""
+}
+
+func (m *Flag) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Flag) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *Flag) GetTarget() *FeedItem {
+	if m != nil {
+		return m.Target
+	}
+	return nil
+}
+
+type Join struct {
+	Block                string               `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	Likes                []*Like              `protobuf:"bytes,4,rep,name=likes,proto3" json:"likes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Join) Reset()         { *m = Join{} }
+func (m *Join) String() string { return proto.CompactTextString(m) }
+func (*Join) ProtoMessage()    {}
+func (*Join) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{14}
+}
+func (m *Join) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Join.Unmarshal(m, b)
+}
+func (m *Join) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Join.Marshal(b, m, deterministic)
+}
+func (dst *Join) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Join.Merge(dst, src)
+}
+func (m *Join) XXX_Size() int {
+	return xxx_messageInfo_Join.Size(m)
+}
+func (m *Join) XXX_DiscardUnknown() {
+	xxx_messageInfo_Join.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Join proto.InternalMessageInfo
+
+func (m *Join) GetBlock() string {
+	if m != nil {
+		return m.Block
+	}
+	return ""
+}
+
+func (m *Join) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Join) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *Join) GetLikes() []*Like {
+	if m != nil {
+		return m.Likes
+	}
+	return nil
+}
+
+type Announce struct {
+	Block                string               `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Announce) Reset()         { *m = Announce{} }
+func (m *Announce) String() string { return proto.CompactTextString(m) }
+func (*Announce) ProtoMessage()    {}
+func (*Announce) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{15}
+}
+func (m *Announce) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Announce.Unmarshal(m, b)
+}
+func (m *Announce) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Announce.Marshal(b, m, deterministic)
+}
+func (dst *Announce) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Announce.Merge(dst, src)
+}
+func (m *Announce) XXX_Size() int {
+	return xxx_messageInfo_Announce.Size(m)
+}
+func (m *Announce) XXX_DiscardUnknown() {
+	xxx_messageInfo_Announce.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Announce proto.InternalMessageInfo
+
+func (m *Announce) GetBlock() string {
+	if m != nil {
+		return m.Block
+	}
+	return ""
+}
+
+func (m *Announce) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Announce) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+type Leave struct {
+	Block                string               `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	Likes                []*Like              `protobuf:"bytes,4,rep,name=likes,proto3" json:"likes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Leave) Reset()         { *m = Leave{} }
+func (m *Leave) String() string { return proto.CompactTextString(m) }
+func (*Leave) ProtoMessage()    {}
+func (*Leave) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{16}
+}
+func (m *Leave) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Leave.Unmarshal(m, b)
+}
+func (m *Leave) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Leave.Marshal(b, m, deterministic)
+}
+func (dst *Leave) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Leave.Merge(dst, src)
+}
+func (m *Leave) XXX_Size() int {
+	return xxx_messageInfo_Leave.Size(m)
+}
+func (m *Leave) XXX_DiscardUnknown() {
+	xxx_messageInfo_Leave.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Leave proto.InternalMessageInfo
+
+func (m *Leave) GetBlock() string {
+	if m != nil {
+		return m.Block
+	}
+	return ""
+}
+
+func (m *Leave) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Leave) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *Leave) GetLikes() []*Like {
+	if m != nil {
+		return m.Likes
+	}
+	return nil
+}
+
+type Text struct {
+	Block                string               `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	Body                 string               `protobuf:"bytes,4,opt,name=body,proto3" json:"body,omitempty"`
+	Comments             []*Comment           `protobuf:"bytes,5,rep,name=comments,proto3" json:"comments,omitempty"`
+	Likes                []*Like              `protobuf:"bytes,6,rep,name=likes,proto3" json:"likes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Text) Reset()         { *m = Text{} }
+func (m *Text) String() string { return proto.CompactTextString(m) }
+func (*Text) ProtoMessage()    {}
+func (*Text) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{17}
+}
+func (m *Text) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Text.Unmarshal(m, b)
+}
+func (m *Text) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Text.Marshal(b, m, deterministic)
+}
+func (dst *Text) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Text.Merge(dst, src)
+}
+func (m *Text) XXX_Size() int {
+	return xxx_messageInfo_Text.Size(m)
+}
+func (m *Text) XXX_DiscardUnknown() {
+	xxx_messageInfo_Text.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Text proto.InternalMessageInfo
+
+func (m *Text) GetBlock() string {
+	if m != nil {
+		return m.Block
+	}
+	return ""
+}
+
+func (m *Text) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Text) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *Text) GetBody() string {
+	if m != nil {
+		return m.Body
+	}
+	return ""
+}
+
+func (m *Text) GetComments() []*Comment {
+	if m != nil {
+		return m.Comments
+	}
+	return nil
+}
+
+func (m *Text) GetLikes() []*Like {
+	if m != nil {
+		return m.Likes
+	}
+	return nil
+}
+
+type TextList struct {
+	Items                []*Text  `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TextList) Reset()         { *m = TextList{} }
+func (m *TextList) String() string { return proto.CompactTextString(m) }
+func (*TextList) ProtoMessage()    {}
+func (*TextList) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{18}
+}
+func (m *TextList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TextList.Unmarshal(m, b)
+}
+func (m *TextList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TextList.Marshal(b, m, deterministic)
+}
+func (dst *TextList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TextList.Merge(dst, src)
+}
+func (m *TextList) XXX_Size() int {
+	return xxx_messageInfo_TextList.Size(m)
+}
+func (m *TextList) XXX_DiscardUnknown() {
+	xxx_messageInfo_TextList.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TextList proto.InternalMessageInfo
+
+func (m *TextList) GetItems() []*Text {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+type File struct {
+	Index                int32                 `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	File                 *FileIndex            `protobuf:"bytes,2,opt,name=file,proto3" json:"file,omitempty"`
+	Links                map[string]*FileIndex `protobuf:"bytes,3,rep,name=links,proto3" json:"links,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *File) Reset()         { *m = File{} }
+func (m *File) String() string { return proto.CompactTextString(m) }
+func (*File) ProtoMessage()    {}
+func (*File) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{19}
+}
+func (m *File) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_File.Unmarshal(m, b)
+}
+func (m *File) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_File.Marshal(b, m, deterministic)
+}
+func (dst *File) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_File.Merge(dst, src)
+}
+func (m *File) XXX_Size() int {
+	return xxx_messageInfo_File.Size(m)
+}
+func (m *File) XXX_DiscardUnknown() {
+	xxx_messageInfo_File.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_File proto.InternalMessageInfo
+
+func (m *File) GetIndex() int32 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *File) GetFile() *FileIndex {
+	if m != nil {
+		return m.File
+	}
+	return nil
+}
+
+func (m *File) GetLinks() map[string]*FileIndex {
+	if m != nil {
+		return m.Links
+	}
+	return nil
+}
+
+type Files struct {
+	Block                string               `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+	Target               string               `protobuf:"bytes,2,opt,name=target,proto3" json:"target,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,3,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`
+	Caption              string               `protobuf:"bytes,5,opt,name=caption,proto3" json:"caption,omitempty"`
+	Files                []*File              `protobuf:"bytes,6,rep,name=files,proto3" json:"files,omitempty"`
+	Comments             []*Comment           `protobuf:"bytes,7,rep,name=comments,proto3" json:"comments,omitempty"`
+	Likes                []*Like              `protobuf:"bytes,8,rep,name=likes,proto3" json:"likes,omitempty"`
+	Threads              []string             `protobuf:"bytes,9,rep,name=threads,proto3" json:"threads,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Files) Reset()         { *m = Files{} }
+func (m *Files) String() string { return proto.CompactTextString(m) }
+func (*Files) ProtoMessage()    {}
+func (*Files) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{20}
+}
+func (m *Files) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Files.Unmarshal(m, b)
+}
+func (m *Files) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Files.Marshal(b, m, deterministic)
+}
+func (dst *Files) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Files.Merge(dst, src)
+}
+func (m *Files) XXX_Size() int {
+	return xxx_messageInfo_Files.Size(m)
+}
+func (m *Files) XXX_DiscardUnknown() {
+	xxx_messageInfo_Files.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Files proto.InternalMessageInfo
+
+func (m *Files) GetBlock() string {
+	if m != nil {
+		return m.Block
+	}
+	return ""
+}
+
+func (m *Files) GetTarget() string {
+	if m != nil {
+		return m.Target
+	}
+	return ""
+}
+
+func (m *Files) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Files) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *Files) GetCaption() string {
+	if m != nil {
+		return m.Caption
+	}
+	return ""
+}
+
+func (m *Files) GetFiles() []*File {
+	if m != nil {
+		return m.Files
+	}
+	return nil
+}
+
+func (m *Files) GetComments() []*Comment {
+	if m != nil {
+		return m.Comments
+	}
+	return nil
+}
+
+func (m *Files) GetLikes() []*Like {
+	if m != nil {
+		return m.Likes
+	}
+	return nil
+}
+
+func (m *Files) GetThreads() []string {
+	if m != nil {
+		return m.Threads
+	}
+	return nil
+}
+
+type FilesList struct {
+	Items                []*Files `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *FilesList) Reset()         { *m = FilesList{} }
+func (m *FilesList) String() string { return proto.CompactTextString(m) }
+func (*FilesList) ProtoMessage()    {}
+func (*FilesList) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{21}
+}
+func (m *FilesList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FilesList.Unmarshal(m, b)
+}
+func (m *FilesList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FilesList.Marshal(b, m, deterministic)
+}
+func (dst *FilesList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FilesList.Merge(dst, src)
+}
+func (m *FilesList) XXX_Size() int {
+	return xxx_messageInfo_FilesList.Size(m)
+}
+func (m *FilesList) XXX_DiscardUnknown() {
+	xxx_messageInfo_FilesList.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FilesList proto.InternalMessageInfo
+
+func (m *FilesList) GetItems() []*Files {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+type Comment struct {
+	Id                   string               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	Body                 string               `protobuf:"bytes,4,opt,name=body,proto3" json:"body,omitempty"`
+	Target               *FeedItem            `protobuf:"bytes,5,opt,name=target,proto3" json:"target,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Comment) Reset()         { *m = Comment{} }
+func (m *Comment) String() string { return proto.CompactTextString(m) }
+func (*Comment) ProtoMessage()    {}
+func (*Comment) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{22}
+}
+func (m *Comment) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Comment.Unmarshal(m, b)
+}
+func (m *Comment) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Comment.Marshal(b, m, deterministic)
+}
+func (dst *Comment) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Comment.Merge(dst, src)
+}
+func (m *Comment) XXX_Size() int {
+	return xxx_messageInfo_Comment.Size(m)
+}
+func (m *Comment) XXX_DiscardUnknown() {
+	xxx_messageInfo_Comment.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Comment proto.InternalMessageInfo
+
+func (m *Comment) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *Comment) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Comment) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *Comment) GetBody() string {
+	if m != nil {
+		return m.Body
+	}
+	return ""
+}
+
+func (m *Comment) GetTarget() *FeedItem {
+	if m != nil {
+		return m.Target
+	}
+	return nil
+}
+
+type CommentList struct {
+	Items                []*Comment `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
+}
+
+func (m *CommentList) Reset()         { *m = CommentList{} }
+func (m *CommentList) String() string { return proto.CompactTextString(m) }
+func (*CommentList) ProtoMessage()    {}
+func (*CommentList) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{23}
+}
+func (m *CommentList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CommentList.Unmarshal(m, b)
+}
+func (m *CommentList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CommentList.Marshal(b, m, deterministic)
+}
+func (dst *CommentList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CommentList.Merge(dst, src)
+}
+func (m *CommentList) XXX_Size() int {
+	return xxx_messageInfo_CommentList.Size(m)
+}
+func (m *CommentList) XXX_DiscardUnknown() {
+	xxx_messageInfo_CommentList.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CommentList proto.InternalMessageInfo
+
+func (m *CommentList) GetItems() []*Comment {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+type Like struct {
+	Id                   string               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Date                 *timestamp.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	User                 *User                `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	Target               *FeedItem            `protobuf:"bytes,4,opt,name=target,proto3" json:"target,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Like) Reset()         { *m = Like{} }
+func (m *Like) String() string { return proto.CompactTextString(m) }
+func (*Like) ProtoMessage()    {}
+func (*Like) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{24}
+}
+func (m *Like) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Like.Unmarshal(m, b)
+}
+func (m *Like) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Like.Marshal(b, m, deterministic)
+}
+func (dst *Like) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Like.Merge(dst, src)
+}
+func (m *Like) XXX_Size() int {
+	return xxx_messageInfo_Like.Size(m)
+}
+func (m *Like) XXX_DiscardUnknown() {
+	xxx_messageInfo_Like.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Like proto.InternalMessageInfo
+
+func (m *Like) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *Like) GetDate() *timestamp.Timestamp {
+	if m != nil {
+		return m.Date
+	}
+	return nil
+}
+
+func (m *Like) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *Like) GetTarget() *FeedItem {
+	if m != nil {
+		return m.Target
+	}
+	return nil
+}
+
+type LikeList struct {
+	Items                []*Like  `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *LikeList) Reset()         { *m = LikeList{} }
+func (m *LikeList) String() string { return proto.CompactTextString(m) }
+func (*LikeList) ProtoMessage()    {}
+func (*LikeList) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{25}
+}
+func (m *LikeList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LikeList.Unmarshal(m, b)
+}
+func (m *LikeList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LikeList.Marshal(b, m, deterministic)
+}
+func (dst *LikeList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LikeList.Merge(dst, src)
+}
+func (m *LikeList) XXX_Size() int {
+	return xxx_messageInfo_LikeList.Size(m)
+}
+func (m *LikeList) XXX_DiscardUnknown() {
+	xxx_messageInfo_LikeList.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LikeList proto.InternalMessageInfo
+
+func (m *LikeList) GetItems() []*Like {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+type WalletUpdate struct {
+	Id                   string            `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Key                  string            `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Type                 WalletUpdate_Type `protobuf:"varint,3,opt,name=type,proto3,enum=WalletUpdate_Type" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *WalletUpdate) Reset()         { *m = WalletUpdate{} }
+func (m *WalletUpdate) String() string { return proto.CompactTextString(m) }
+func (*WalletUpdate) ProtoMessage()    {}
+func (*WalletUpdate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{26}
+}
+func (m *WalletUpdate) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_WalletUpdate.Unmarshal(m, b)
+}
+func (m *WalletUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_WalletUpdate.Marshal(b, m, deterministic)
+}
+func (dst *WalletUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WalletUpdate.Merge(dst, src)
+}
+func (m *WalletUpdate) XXX_Size() int {
+	return xxx_messageInfo_WalletUpdate.Size(m)
+}
+func (m *WalletUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_WalletUpdate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WalletUpdate proto.InternalMessageInfo
+
+func (m *WalletUpdate) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *WalletUpdate) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *WalletUpdate) GetType() WalletUpdate_Type {
+	if m != nil {
+		return m.Type
+	}
+	return WalletUpdate_THREAD_ADDED
+}
+
+type Summary struct {
+	AccountPeerCount     int32    `protobuf:"varint,1,opt,name=account_peer_count,json=accountPeerCount,proto3" json:"account_peer_count,omitempty"`
+	ThreadCount          int32    `protobuf:"varint,2,opt,name=thread_count,json=threadCount,proto3" json:"thread_count,omitempty"`
+	FileCount            int32    `protobuf:"varint,3,opt,name=file_count,json=fileCount,proto3" json:"file_count,omitempty"`
+	ContactCount         int32    `protobuf:"varint,4,opt,name=contact_count,json=contactCount,proto3" json:"contact_count,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Summary) Reset()         { *m = Summary{} }
+func (m *Summary) String() string { return proto.CompactTextString(m) }
+func (*Summary) ProtoMessage()    {}
+func (*Summary) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{27}
+}
+func (m *Summary) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Summary.Unmarshal(m, b)
+}
+func (m *Summary) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Summary.Marshal(b, m, deterministic)
+}
+func (dst *Summary) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Summary.Merge(dst, src)
+}
+func (m *Summary) XXX_Size() int {
+	return xxx_messageInfo_Summary.Size(m)
+}
+func (m *Summary) XXX_DiscardUnknown() {
+	xxx_messageInfo_Summary.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Summary proto.InternalMessageInfo
+
+func (m *Summary) GetAccountPeerCount() int32 {
+	if m != nil {
+		return m.AccountPeerCount
+	}
+	return 0
+}
+
+func (m *Summary) GetThreadCount() int32 {
+	if m != nil {
+		return m.ThreadCount
+	}
+	return 0
+}
+
+func (m *Summary) GetFileCount() int32 {
+	if m != nil {
+		return m.FileCount
+	}
+	return 0
+}
+
+func (m *Summary) GetContactCount() int32 {
+	if m != nil {
+		return m.ContactCount
+	}
+	return 0
+}
+
+type LogLevel struct {
+	Systems              map[string]LogLevel_Level `protobuf:"bytes,1,rep,name=systems,proto3" json:"systems,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3,enum=LogLevel_Level"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *LogLevel) Reset()         { *m = LogLevel{} }
+func (m *LogLevel) String() string { return proto.CompactTextString(m) }
+func (*LogLevel) ProtoMessage()    {}
+func (*LogLevel) Descriptor() ([]byte, []int) {
+	return fileDescriptor_view_bb69a50d37262d43, []int{28}
+}
+func (m *LogLevel) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LogLevel.Unmarshal(m, b)
+}
+func (m *LogLevel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LogLevel.Marshal(b, m, deterministic)
+}
+func (dst *LogLevel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LogLevel.Merge(dst, src)
+}
+func (m *LogLevel) XXX_Size() int {
+	return xxx_messageInfo_LogLevel.Size(m)
+}
+func (m *LogLevel) XXX_DiscardUnknown() {
+	xxx_messageInfo_LogLevel.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LogLevel proto.InternalMessageInfo
+
+func (m *LogLevel) GetSystems() map[string]LogLevel_Level {
+	if m != nil {
+		return m.Systems
 	}
 	return nil
 }
 
 func init() {
+	proto.RegisterType((*AddThreadConfig)(nil), "AddThreadConfig")
+	proto.RegisterType((*AddThreadConfig_Schema)(nil), "AddThreadConfig.Schema")
+	proto.RegisterType((*Step)(nil), "Step")
 	proto.RegisterType((*Directory)(nil), "Directory")
-	proto.RegisterMapType((map[string]*File)(nil), "Directory.FilesEntry")
-	proto.RegisterType((*MobilePreparedFiles)(nil), "MobilePreparedFiles")
-	proto.RegisterMapType((map[string]string)(nil), "MobilePreparedFiles.PinEntry")
+	proto.RegisterMapType((map[string]*FileIndex)(nil), "Directory.FilesEntry")
+	proto.RegisterType((*DirectoryList)(nil), "DirectoryList")
+	proto.RegisterType((*Keys)(nil), "Keys")
+	proto.RegisterMapType((map[string]string)(nil), "Keys.FilesEntry")
+	proto.RegisterType((*NewInvite)(nil), "NewInvite")
+	proto.RegisterType((*InviteView)(nil), "InviteView")
+	proto.RegisterType((*InviteViewList)(nil), "InviteViewList")
+	proto.RegisterType((*FeedRequest)(nil), "FeedRequest")
+	proto.RegisterType((*FeedItem)(nil), "FeedItem")
+	proto.RegisterType((*FeedItemList)(nil), "FeedItemList")
+	proto.RegisterType((*Merge)(nil), "Merge")
+	proto.RegisterType((*Ignore)(nil), "Ignore")
+	proto.RegisterType((*Flag)(nil), "Flag")
+	proto.RegisterType((*Join)(nil), "Join")
+	proto.RegisterType((*Announce)(nil), "Announce")
+	proto.RegisterType((*Leave)(nil), "Leave")
+	proto.RegisterType((*Text)(nil), "Text")
+	proto.RegisterType((*TextList)(nil), "TextList")
+	proto.RegisterType((*File)(nil), "File")
+	proto.RegisterMapType((map[string]*FileIndex)(nil), "File.LinksEntry")
+	proto.RegisterType((*Files)(nil), "Files")
+	proto.RegisterType((*FilesList)(nil), "FilesList")
+	proto.RegisterType((*Comment)(nil), "Comment")
+	proto.RegisterType((*CommentList)(nil), "CommentList")
+	proto.RegisterType((*Like)(nil), "Like")
+	proto.RegisterType((*LikeList)(nil), "LikeList")
+	proto.RegisterType((*WalletUpdate)(nil), "WalletUpdate")
+	proto.RegisterType((*Summary)(nil), "Summary")
+	proto.RegisterType((*LogLevel)(nil), "LogLevel")
+	proto.RegisterMapType((map[string]LogLevel_Level)(nil), "LogLevel.SystemsEntry")
+	proto.RegisterEnum("AddThreadConfig_Schema_Preset", AddThreadConfig_Schema_Preset_name, AddThreadConfig_Schema_Preset_value)
+	proto.RegisterEnum("FeedRequest_Mode", FeedRequest_Mode_name, FeedRequest_Mode_value)
+	proto.RegisterEnum("WalletUpdate_Type", WalletUpdate_Type_name, WalletUpdate_Type_value)
+	proto.RegisterEnum("LogLevel_Level", LogLevel_Level_name, LogLevel_Level_value)
 }
 
-func init() { proto.RegisterFile("view.proto", fileDescriptor_view_5419c27765a82837) }
+func init() { proto.RegisterFile("view.proto", fileDescriptor_view_bb69a50d37262d43) }
 
-var fileDescriptor_view_5419c27765a82837 = []byte{
-	// 226 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x90, 0x41, 0x4b, 0x04, 0x21,
-	0x1c, 0x47, 0x51, 0x9b, 0x68, 0xfe, 0x5e, 0xc2, 0x0a, 0x64, 0x2a, 0x18, 0xf6, 0x34, 0x10, 0x18,
-	0x4c, 0x10, 0xd1, 0x25, 0x88, 0xea, 0x16, 0x2c, 0x1e, 0xbb, 0xed, 0x34, 0xff, 0x40, 0xb2, 0x51,
-	0x6c, 0xda, 0xf0, 0xbb, 0xf4, 0x61, 0x43, 0xa5, 0x76, 0x0f, 0x7b, 0xd3, 0xe7, 0x8f, 0xc7, 0x43,
-	0x80, 0xb5, 0xc1, 0x6f, 0xe5, 0x83, 0x9b, 0x5d, 0xc3, 0x3f, 0xdc, 0x88, 0xb6, 0x5c, 0x16, 0x11,
-	0xea, 0x07, 0x13, 0xf0, 0x75, 0x76, 0x21, 0x8a, 0x0b, 0xa8, 0xde, 0x8c, 0xc5, 0x4f, 0x49, 0x5a,
-	0xd6, 0xf1, 0xfe, 0x44, 0xfd, 0x3f, 0xa9, 0xa7, 0xc4, 0x1f, 0xa7, 0x39, 0x44, 0x5d, 0x36, 0xcd,
-	0x1d, 0xc0, 0x06, 0x8a, 0x43, 0x60, 0xef, 0x18, 0x25, 0x69, 0x49, 0x57, 0xeb, 0x74, 0x14, 0xa7,
-	0x50, 0xad, 0x57, 0xf6, 0x0b, 0x25, 0x6d, 0x49, 0xc7, 0xfb, 0x2a, 0x2b, 0x74, 0x61, 0xb7, 0xf4,
-	0x86, 0x2c, 0x7e, 0x08, 0x1c, 0x3d, 0xbb, 0xc1, 0x58, 0x5c, 0x06, 0xf4, 0xab, 0x80, 0x63, 0xf6,
-	0x89, 0x33, 0x60, 0xa3, 0x09, 0x59, 0xc5, 0x7b, 0xd8, 0x34, 0xe8, 0x84, 0xc5, 0x25, 0x30, 0x6f,
-	0x26, 0x49, 0x73, 0xe1, 0xb9, 0xda, 0x21, 0x50, 0x4b, 0x33, 0x95, 0xd2, 0xb4, 0x6c, 0xae, 0xe1,
-	0xe0, 0x0f, 0xec, 0xa8, 0x3c, 0xde, 0xae, 0xac, 0xb7, 0xf2, 0xee, 0xf7, 0x5e, 0xa8, 0x1f, 0x86,
-	0xfd, 0xfc, 0x4d, 0x57, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x7c, 0x85, 0x7d, 0xef, 0x41, 0x01,
-	0x00, 0x00,
+var fileDescriptor_view_bb69a50d37262d43 = []byte{
+	// 1397 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x57, 0x5d, 0x6f, 0xdb, 0xd4,
+	0x1b, 0xaf, 0x1d, 0x3b, 0x89, 0x9f, 0x64, 0x9d, 0xff, 0x47, 0xfd, 0x0f, 0xaf, 0x83, 0x2d, 0xf3,
+	0xd8, 0xd6, 0x09, 0xe6, 0x41, 0x27, 0xd0, 0xc4, 0x9d, 0x97, 0xb8, 0x5b, 0x58, 0xea, 0x4c, 0xa7,
+	0xe9, 0x26, 0xb8, 0xa0, 0x72, 0x93, 0xd3, 0xd4, 0xc4, 0x2f, 0xc1, 0x3e, 0xe9, 0x96, 0x1b, 0x24,
+	0x24, 0xb8, 0x41, 0x70, 0xb7, 0x3b, 0x24, 0xee, 0xe1, 0x13, 0x70, 0xc5, 0xf7, 0xe0, 0xbb, 0x70,
+	0x81, 0xce, 0x8b, 0x9b, 0xa4, 0xcd, 0xd8, 0x40, 0x2a, 0x70, 0x13, 0xf9, 0x79, 0xc9, 0x39, 0xbf,
+	0xe7, 0xfd, 0x39, 0x00, 0x47, 0x21, 0x79, 0xe6, 0x8c, 0xb3, 0x94, 0xa6, 0xeb, 0x17, 0x87, 0x69,
+	0x3a, 0x8c, 0xc8, 0x1d, 0x4e, 0xed, 0x4f, 0x0e, 0xee, 0x04, 0xc9, 0x54, 0x8a, 0xae, 0x9c, 0x14,
+	0xd1, 0x30, 0x26, 0x39, 0x0d, 0xe2, 0xb1, 0x54, 0xa8, 0xc5, 0xe9, 0x80, 0x44, 0x82, 0xb0, 0x7f,
+	0x57, 0xe1, 0xbc, 0x3b, 0x18, 0xf4, 0x0e, 0x33, 0x12, 0x0c, 0x9a, 0x69, 0x72, 0x10, 0x0e, 0x91,
+	0x09, 0xa5, 0x11, 0x99, 0x5a, 0x4a, 0x43, 0xd9, 0x30, 0x30, 0xfb, 0x44, 0x08, 0xb4, 0x24, 0x88,
+	0x89, 0xa5, 0x72, 0x16, 0xff, 0x46, 0x77, 0xa0, 0x9c, 0xf7, 0x0f, 0x49, 0x1c, 0x58, 0xa5, 0x86,
+	0xb2, 0x51, 0xdb, 0x7c, 0xc3, 0x39, 0x71, 0x8e, 0xb3, 0xc3, 0xc5, 0x58, 0xaa, 0xa1, 0x06, 0x68,
+	0x74, 0x3a, 0x26, 0x96, 0xd6, 0x50, 0x36, 0x56, 0x37, 0xeb, 0x8e, 0xd0, 0x75, 0x7a, 0xd3, 0x31,
+	0xc1, 0x5c, 0x82, 0x6e, 0x41, 0x25, 0x3f, 0x0c, 0xb2, 0x30, 0x19, 0x5a, 0x3a, 0x57, 0x3a, 0x5f,
+	0x28, 0xed, 0x08, 0x36, 0x2e, 0xe4, 0xc8, 0x82, 0x4a, 0x4c, 0xe2, 0x7d, 0x92, 0xe5, 0x56, 0xb9,
+	0x51, 0xda, 0x30, 0x70, 0x41, 0xa2, 0x35, 0xd0, 0x0f, 0xd2, 0xac, 0x4f, 0xac, 0x4a, 0x43, 0xd9,
+	0xa8, 0x62, 0x41, 0xac, 0xbf, 0x50, 0xa0, 0x2c, 0xf0, 0xa0, 0x55, 0x50, 0xc3, 0x81, 0xb4, 0x4e,
+	0x0d, 0x07, 0xcc, 0xb8, 0xcf, 0xf3, 0x34, 0x29, 0x8c, 0x63, 0xdf, 0xe8, 0x43, 0x28, 0x8f, 0x33,
+	0x92, 0x13, 0xca, 0x8d, 0x5b, 0xdd, 0xbc, 0xfc, 0x12, 0xe3, 0x9c, 0xc7, 0x5c, 0x0b, 0x4b, 0x6d,
+	0xdb, 0x81, 0xb2, 0xe0, 0xa0, 0x2a, 0x68, 0x7e, 0xd7, 0xf7, 0xcc, 0x15, 0x74, 0x1e, 0x6a, 0x4d,
+	0x77, 0xdb, 0xc3, 0xee, 0x1e, 0xee, 0x76, 0x3a, 0xa6, 0x82, 0x0c, 0xd0, 0xb7, 0xbd, 0x56, 0xdb,
+	0x35, 0x55, 0xfb, 0x03, 0xd0, 0x76, 0x28, 0x19, 0x33, 0x0c, 0x3e, 0x73, 0xb0, 0x40, 0xc5, 0xbf,
+	0xd1, 0x45, 0xd0, 0xa2, 0x30, 0x19, 0x71, 0x5c, 0xb5, 0x4d, 0xdd, 0xe9, 0x84, 0xc9, 0x08, 0x73,
+	0x96, 0xfd, 0x25, 0x18, 0xad, 0x30, 0x23, 0x7d, 0x9a, 0x66, 0x53, 0xf4, 0x0e, 0xe8, 0x07, 0x61,
+	0x44, 0x72, 0x4b, 0x69, 0x94, 0x36, 0x6a, 0x9b, 0xff, 0x77, 0x8e, 0x45, 0xce, 0x16, 0xe3, 0x7b,
+	0x09, 0xcd, 0xa6, 0x58, 0xe8, 0xac, 0xb7, 0x00, 0x66, 0xcc, 0x25, 0x91, 0x6e, 0x80, 0x7e, 0x14,
+	0x44, 0x13, 0x22, 0x6f, 0x05, 0x7e, 0x44, 0x3b, 0x19, 0x90, 0xe7, 0x58, 0x08, 0x3e, 0x52, 0xef,
+	0x29, 0xf6, 0xfb, 0x70, 0xee, 0xf8, 0x92, 0x4e, 0x98, 0x53, 0xf6, 0xb7, 0x90, 0x92, 0xb8, 0xc0,
+	0x00, 0x33, 0x0c, 0x58, 0x08, 0xec, 0x43, 0xd0, 0x1e, 0x91, 0x69, 0x8e, 0x6e, 0x2c, 0xa2, 0x35,
+	0x1d, 0xc6, 0x5d, 0x02, 0xf4, 0xde, 0x2b, 0x80, 0xae, 0xcd, 0x03, 0x35, 0xe6, 0xc1, 0x3d, 0x00,
+	0xc3, 0x27, 0xcf, 0xda, 0xc9, 0x51, 0x48, 0xc9, 0xa9, 0x60, 0xcb, 0x83, 0xd4, 0xd9, 0x41, 0x16,
+	0x54, 0x42, 0xae, 0x9b, 0xf1, 0x58, 0x1b, 0xb8, 0x20, 0xed, 0xaf, 0x14, 0x00, 0x71, 0xcc, 0x93,
+	0x90, 0x3c, 0x5b, 0x96, 0x37, 0xa7, 0x8a, 0xe2, 0xca, 0xe2, 0x61, 0x2c, 0x6c, 0xbb, 0x39, 0xc9,
+	0x8e, 0xcf, 0x44, 0x0e, 0x68, 0x83, 0x80, 0x8a, 0x22, 0xa8, 0x6d, 0xae, 0x3b, 0xa2, 0x58, 0x9d,
+	0xa2, 0x58, 0x9d, 0x5e, 0x51, 0xac, 0x98, 0xeb, 0xd9, 0x77, 0x61, 0x75, 0x06, 0x81, 0xbb, 0xfa,
+	0xea, 0xa2, 0xab, 0x6b, 0xce, 0x4c, 0x5e, 0xf8, 0xfa, 0x27, 0x05, 0x6a, 0x5b, 0x84, 0x0c, 0x30,
+	0xf9, 0x62, 0x42, 0x72, 0x8a, 0x2e, 0x40, 0x99, 0xf2, 0xdc, 0x95, 0xe8, 0x25, 0xc5, 0xf8, 0xe9,
+	0xc1, 0x01, 0xcb, 0x72, 0x61, 0x83, 0xa4, 0x98, 0x6f, 0xa3, 0x30, 0x0e, 0x45, 0xf2, 0xeb, 0x58,
+	0x10, 0xe8, 0x3a, 0x68, 0xac, 0x73, 0xc8, 0xfa, 0xfd, 0x9f, 0x33, 0x77, 0x83, 0xb3, 0x9d, 0x0e,
+	0x08, 0xe6, 0x62, 0xfb, 0x36, 0x68, 0x8c, 0x42, 0x00, 0xe5, 0xe6, 0x43, 0xdc, 0xf5, 0xbb, 0xe6,
+	0x0a, 0x3a, 0x07, 0x86, 0xeb, 0xfb, 0xdd, 0x9e, 0xdb, 0xf3, 0x5a, 0xa6, 0xc2, 0x44, 0x3b, 0x3d,
+	0xb7, 0xf9, 0x68, 0xc7, 0x54, 0xed, 0x43, 0xa8, 0xb2, 0x83, 0xda, 0x94, 0xc4, 0xec, 0xde, 0xfd,
+	0x28, 0xed, 0x8f, 0x24, 0x4c, 0x41, 0xcc, 0xa1, 0x57, 0x17, 0xd0, 0x3b, 0x50, 0x19, 0x07, 0xd3,
+	0x28, 0x0d, 0x06, 0xd2, 0xd7, 0x6b, 0xa7, 0xbc, 0xe9, 0x26, 0x53, 0x5c, 0x28, 0xd9, 0x9f, 0x40,
+	0xbd, 0xb8, 0x89, 0x3b, 0xf2, 0xca, 0xa2, 0x23, 0x0d, 0xa7, 0x90, 0x4a, 0x37, 0x32, 0x38, 0xfd,
+	0x74, 0x92, 0x08, 0xef, 0xe8, 0x58, 0x10, 0x3c, 0xec, 0xe4, 0x39, 0x95, 0xc9, 0xc2, 0xbf, 0xed,
+	0xef, 0x15, 0xd0, 0xb7, 0x49, 0x36, 0x24, 0x2f, 0x31, 0xa1, 0x88, 0xba, 0xfa, 0x7a, 0x51, 0x67,
+	0xa5, 0x3f, 0xc9, 0x4f, 0xe6, 0x10, 0x67, 0xa1, 0x6b, 0x50, 0xa1, 0x41, 0x36, 0x24, 0x34, 0xb7,
+	0xb4, 0x93, 0xb8, 0x0b, 0x89, 0xfd, 0x9d, 0x02, 0xe5, 0xf6, 0x30, 0x49, 0xb3, 0x7f, 0x00, 0xd0,
+	0x55, 0x28, 0x8b, 0x6b, 0x65, 0x4e, 0xcf, 0xe1, 0x91, 0x02, 0xfb, 0x5b, 0x05, 0xb4, 0xad, 0x28,
+	0x18, 0xfe, 0x27, 0xc0, 0x7c, 0xad, 0x80, 0xf6, 0x71, 0x1a, 0x26, 0x67, 0x0f, 0xe6, 0x12, 0x2b,
+	0xa3, 0x11, 0x29, 0x02, 0xc5, 0x3a, 0xf8, 0x88, 0x60, 0xc1, 0xb3, 0x47, 0x50, 0x75, 0x93, 0x24,
+	0x9d, 0x24, 0xfd, 0xb3, 0x8f, 0x91, 0xfd, 0x8d, 0x02, 0x7a, 0x87, 0x04, 0x47, 0xe4, 0x5f, 0x36,
+	0xfa, 0x57, 0x05, 0xb4, 0x1e, 0x79, 0x4e, 0xcf, 0x1e, 0x06, 0x02, 0x6d, 0x3f, 0x1d, 0x4c, 0x79,
+	0x1a, 0x18, 0x98, 0x7f, 0xa3, 0xb7, 0xa1, 0xda, 0x4f, 0xe3, 0x98, 0x24, 0x34, 0xb7, 0x74, 0x8e,
+	0xae, 0xea, 0x34, 0x05, 0x03, 0x1f, 0x4b, 0x66, 0x06, 0x94, 0x97, 0x18, 0x70, 0x13, 0xaa, 0x0c,
+	0x3f, 0xef, 0x1f, 0x97, 0x16, 0xfb, 0x87, 0xee, 0x30, 0x49, 0xd1, 0x82, 0x7f, 0x66, 0x29, 0x1f,
+	0x46, 0xdc, 0xe1, 0x21, 0x1b, 0x9f, 0xdc, 0x52, 0x1d, 0x0b, 0x02, 0x5d, 0x06, 0x8d, 0x8d, 0xb9,
+	0x25, 0x53, 0x96, 0xf3, 0xd9, 0x94, 0x64, 0x83, 0x3e, 0xb7, 0x4a, 0x72, 0x4a, 0x32, 0x05, 0xbe,
+	0x01, 0x14, 0x53, 0x92, 0x8b, 0xd9, 0x38, 0x9f, 0x31, 0xff, 0xf6, 0x38, 0x7f, 0xa1, 0x82, 0xce,
+	0x87, 0xed, 0x9f, 0x74, 0x60, 0x51, 0x55, 0x45, 0x07, 0xe6, 0xd4, 0x71, 0xbc, 0x4a, 0x7f, 0x31,
+	0x5e, 0xda, 0xe9, 0x78, 0x59, 0x50, 0xe9, 0x07, 0x63, 0x1a, 0xa6, 0x09, 0x5f, 0xfd, 0x0c, 0x5c,
+	0x90, 0xcc, 0xcd, 0x62, 0x61, 0x28, 0xe2, 0xc1, 0x90, 0xca, 0x2d, 0x61, 0x21, 0xa4, 0x95, 0x57,
+	0x87, 0xb4, 0x7a, 0x3a, 0xa4, 0xec, 0x66, 0x31, 0x50, 0x72, 0xcb, 0x10, 0x9b, 0xa4, 0x24, 0xed,
+	0x5b, 0x60, 0x70, 0xaf, 0xf0, 0x68, 0xbf, 0xb9, 0x18, 0xed, 0xb2, 0x58, 0x59, 0x8a, 0x70, 0xff,
+	0xa0, 0x40, 0x45, 0xde, 0x7b, 0x6a, 0x4f, 0x38, 0xe3, 0xac, 0x9e, 0xb5, 0x3c, 0xfd, 0x65, 0x2d,
+	0xef, 0x36, 0xd4, 0x24, 0x38, 0x6e, 0xca, 0xe5, 0x45, 0x53, 0x66, 0x1e, 0x93, 0xc6, 0xb0, 0x0e,
+	0xc9, 0x3c, 0x74, 0x96, 0x96, 0xbc, 0x46, 0xa3, 0xbe, 0x09, 0x55, 0x86, 0x62, 0x79, 0xad, 0x89,
+	0x08, 0x0a, 0xbc, 0xbf, 0x28, 0x50, 0x7f, 0x1a, 0x44, 0x11, 0xa1, 0xbb, 0x63, 0x7e, 0xef, 0xab,
+	0x97, 0xbe, 0x1b, 0xf2, 0x2d, 0x22, 0xb6, 0x7b, 0xe4, 0xcc, 0xff, 0x7d, 0xee, 0x45, 0x62, 0x7f,
+	0x06, 0x1a, 0xa3, 0x90, 0x09, 0xf5, 0xde, 0x43, 0xec, 0xb9, 0xad, 0x3d, 0xb7, 0xd5, 0xf2, 0x5a,
+	0xe6, 0x0a, 0x42, 0xb0, 0x2a, 0x39, 0xd8, 0xdb, 0xee, 0x3e, 0xe1, 0x7b, 0xcd, 0x05, 0x40, 0x6e,
+	0xb3, 0xd9, 0xdd, 0xf5, 0x7b, 0x7b, 0x8f, 0x3d, 0x0f, 0x4b, 0x5d, 0x15, 0x59, 0xb0, 0xb6, 0xc0,
+	0x2f, 0xfe, 0x51, 0xb2, 0x7f, 0x54, 0xa0, 0xb2, 0x33, 0x89, 0xe3, 0x20, 0x9b, 0xa2, 0x77, 0x01,
+	0x05, 0x7d, 0xbe, 0x63, 0xec, 0x8d, 0x09, 0xc9, 0xf6, 0xc4, 0xee, 0x21, 0xda, 0x86, 0x29, 0x25,
+	0x8f, 0x09, 0xc9, 0x9a, 0x7c, 0x0d, 0xb9, 0x0a, 0x75, 0x91, 0xa7, 0x7b, 0xf3, 0x3b, 0x4a, 0x8d,
+	0xca, 0x37, 0x0a, 0x53, 0x79, 0x0b, 0x80, 0x55, 0x89, 0x54, 0x10, 0xbb, 0x9c, 0xc1, 0x38, 0x42,
+	0x7c, 0x0d, 0xce, 0xf5, 0xd3, 0x84, 0x06, 0x7d, 0x2a, 0x35, 0x34, 0xae, 0x51, 0x97, 0x4c, 0xae,
+	0x64, 0xff, 0xa6, 0x40, 0xb5, 0x93, 0x0e, 0x3b, 0xe4, 0x88, 0x44, 0xe8, 0x3d, 0xa8, 0xe4, 0xd3,
+	0x7c, 0x2e, 0x0e, 0x17, 0x9c, 0x42, 0xe6, 0xec, 0x08, 0x81, 0xe8, 0x4e, 0x85, 0xda, 0xfa, 0x23,
+	0xa8, 0xcf, 0x0b, 0x96, 0x74, 0xa8, 0xeb, 0xf3, 0x1d, 0x8a, 0xbd, 0xf8, 0x8e, 0x4f, 0xe4, 0xbf,
+	0xf3, 0x6d, 0xca, 0x67, 0x43, 0x8c, 0xe1, 0xa8, 0x43, 0xb5, 0x89, 0xdb, 0xbd, 0x76, 0xd3, 0xed,
+	0x98, 0x2b, 0xec, 0x39, 0xe5, 0x61, 0xdc, 0xc5, 0xa6, 0x82, 0x6a, 0x50, 0x79, 0xea, 0x62, 0xbf,
+	0xed, 0x3f, 0x30, 0x55, 0xb6, 0x65, 0xfa, 0xdd, 0x5e, 0xbb, 0xe9, 0x99, 0x25, 0xf6, 0x1a, 0x6b,
+	0xfb, 0x5b, 0x5d, 0x53, 0x63, 0xda, 0x2d, 0xef, 0xfe, 0xee, 0x03, 0x53, 0xbf, 0xaf, 0x7d, 0xaa,
+	0x8e, 0xf7, 0xf7, 0xcb, 0x3c, 0x7d, 0xef, 0xfe, 0x11, 0x00, 0x00, 0xff, 0xff, 0x66, 0x5f, 0x7e,
+	0xcf, 0x5f, 0x0f, 0x00, 0x00,
 }
